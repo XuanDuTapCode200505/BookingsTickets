@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +9,10 @@
 </head>
 <body>
     <div class="container">
-        <?php include 'pages/layout/header.php'; ?>
-        <?php include 'pages/layout/menu.php'; ?>
-        <?php include 'pages/layout/content.php'; ?>
-        <?php include 'pages/layout/footer.php'; ?>
+        <?php include 'pages/layout/header.php';
+        include 'pages/layout/menu.php';
+        include 'pages/layout/content.php';
+        include 'pages/layout/footer.php'; ?>
     </div>
 </body>
 </html>
