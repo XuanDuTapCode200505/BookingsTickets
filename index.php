@@ -11,15 +11,7 @@
     <div class="container">
         <?php include 'pages/layout/header.php'; ?>
         <?php include 'pages/layout/menu.php'; ?>
-        <div id="content">
-            <div class="sidebar">
-                <p>sidebar</p>
-            </div>
-            <div class="main-content">
-                <p>main-content</p>
-            </div>
-        </div>
-        <div class="clear"></div>
+        <?php include 'pages/layout/content.php'; ?>
         <div class="footer">
             <p>footer</p>
         </div>

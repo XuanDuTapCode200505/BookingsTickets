@@ -6,10 +6,10 @@
             </div>
             <div class="menu-right">
                 <ul class="list-menu">
-                    <li><a href="#">Phim</a></li>
-                    <li><a href="#">Rạp</a></li>
-                    <li><a href="#">Tin tức</a></li>
-                    <li><a href="dangnhap.php">Đăng nhập</a></li>
+                    <li><a href="index.php?quanly=phim">Phim</a></li>
+                    <li><a href="index.php?quanly=rap">Rạp</a></li>
+                    <li><a href="index.php?quanly=tintuc">Tin tức</a></li>
+                    <li><a href="index.php?quanly=dangnhap">Đăng nhập</a></li>
                 </ul>
             </div>
         </div>
