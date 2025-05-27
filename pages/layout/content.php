@@ -1,5 +1,5 @@
         <div id="content">
-            <?php include 'pages/secondary_pages/sidebar.php'; ?>
+            <?php include 'pages/layout/sidebar.php'; ?>
             <div class="main-content">
                 <?php if(isset($_GET['quanly'])
                 ) {
@@ -7,15 +7,15 @@
                 }else{
                     $tam = '';
                 }if($tam == 'dangnhap'){
-                    include 'pages/secondary_pages/dangnhap.php';
+                    include 'pages/pages/login.php';
                 }elseif($tam == 'phim'){
-                    include 'pages/secondary_pages/phim.php';
+                    include 'pages/pages/movie.php';
                 }elseif($tam == 'rap'){
-                    include 'pages/secondary_pages/rap.php';
+                    include 'pages/pages/theater.php';
                 }elseif($tam == 'tintuc'){
-                    include 'pages/secondary_pages/tintuc.php';
+                    include 'pages/newsPages.php';
                 }else{
-                    include 'pages/secondary_pages/trangchu.php';
+                    include 'pages/homePage.php';
                 } ?>
             </div>
         </div>

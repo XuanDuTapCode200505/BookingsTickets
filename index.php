@@ -12,9 +12,7 @@
         <?php include 'pages/layout/header.php'; ?>
         <?php include 'pages/layout/menu.php'; ?>
         <?php include 'pages/layout/content.php'; ?>
-        <div class="footer">
-            <p>footer</p>
-        </div>
+        <?php include 'pages/layout/footer.php'; ?>
     </div>
 </body>
 </html>
