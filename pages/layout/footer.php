@@ -1,3 +1,3 @@
 <div class="footer">
-            <p>footer</p>
-        </div>
+    <p>footer</p>
+</div>
