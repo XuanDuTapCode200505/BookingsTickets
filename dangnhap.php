@@ -10,8 +10,7 @@
     <div class="container">
         <?php include 'pages/layout/header.php'; ?>
         <?php include 'pages/layout/menu.php'; ?>
-        <div class="content">
-            <div class="content-left">
+        <div class="login">
                 <h1>Đăng nhập</h1>
             </div>
         </div>
