@@ -3,11 +3,13 @@
             <div class="main-content">
                 <?php if(isset($_GET['quanly'])
                 ) {
-            $tam = $_GET['quanly'];
+                    $tam = $_GET['quanly'];
                 }else{
                     $tam = '';
                 }if($tam == 'dangnhap'){
                     include 'pages/pages/login.php';
+                }elseif($tam == 'dangky'){
+                    include 'pages/pages/register.php';
                 }elseif($tam == 'phim'){
                     include 'pages/pages/movie.php';
                 }elseif($tam == 'rap'){
