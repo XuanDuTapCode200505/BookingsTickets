@@ -9,12 +9,13 @@
   width: 80%;
   margin: 0 auto;
 }
+
 /* begin header */
 .header {
   background-image: url(../img/banner_1.jpg);
   background-repeat: no-repeat;
   background-size: 100% 120px;
-  border: 1px solid #ff0303;
+  /* border: 1px solid #ff0303; */
   height: 120px;
   width: 100%;
 }
@@ -93,15 +94,15 @@ ul.list-menu li a:hover {
 
 /* begin content */
 #content {
-  /* background-color: #fbf9c0; */
-  border: 1px solid #00ff00;
-  height: 500px;
+  background-color: #fffd98;
+  /* border: 1px solid #00ff00; */
+  height: 1000px;
   width: 100%;
 }
 
 .sidebar {
   /* border: 1px solid #0000ff; */
-  height: 490px;
+  height: auto;
   width: 20%;
   margin-left: 5px;
   margin-top: 5px;
@@ -109,12 +110,14 @@ ul.list-menu li a:hover {
 }
 
 .main-content {
-  border: 1px solid #0e0e1d;
-  height: 490px;
+  border-radius: 10px;
+  border: 2px solid #0e0e1d;
+  height: 100%;
   width: 78%;
   margin-right: 5px;
   margin-top: 5px;
   float: right;
+  background-color: #ccc;
 }
 /* end content */
 

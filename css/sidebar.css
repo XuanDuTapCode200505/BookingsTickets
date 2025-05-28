@@ -3,7 +3,6 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px 0;
   position: relative;
   overflow: hidden;
   height: 550px;
@@ -24,7 +23,7 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  height: 450px;
+  height: 100%;
   flex: 0 0 100%;
   min-width: 100%;
   margin: 0;
