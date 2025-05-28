@@ -4,7 +4,7 @@
 }
 
 .container {
-  border: 1px solid #000;
+  /* border: 1px solid #000; */
   height: auto;
   width: 80%;
   margin: 0 auto;
@@ -14,7 +14,7 @@
   background-image: url(../img/banner_1.jpg);
   background-repeat: no-repeat;
   background-size: 100% 120px;
-  /* border: 1px solid #ff0303; */
+  border: 1px solid #ff0303;
   height: 120px;
   width: 100%;
 }
@@ -22,7 +22,7 @@
 
 /* begin menu */
 .menu {
-  border: 1px solid #ddff00;
+  /* border: 1px solid #ddff00; */
   height: 50px;
   width: 100%;
   background-color: #fffd98;
@@ -93,13 +93,14 @@ ul.list-menu li a:hover {
 
 /* begin content */
 #content {
+  /* background-color: #fbf9c0; */
   border: 1px solid #00ff00;
   height: 500px;
   width: 100%;
 }
 
 .sidebar {
-  border: 1px solid #0000ff;
+  /* border: 1px solid #0000ff; */
   height: 490px;
   width: 20%;
   margin-left: 5px;
