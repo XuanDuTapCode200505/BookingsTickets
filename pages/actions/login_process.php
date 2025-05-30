@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result && $result->num_rows == 1) {
         $row = $result->fetch_assoc();
-        if (password_verify($password, $row['password'])) {
+        if ($password === $row['password']) {
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['email'] = $row['email'];
             $_SESSION['name'] = $row['name'];
@@ -21,12 +21,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         } else {
             $_SESSION['login_error'] = "Mật khẩu không đúng!";
-            header("Location: ../login.php");
+            header("Location: ../../index.php?quanly=dangnhap");
             exit();
         }
     } else {
         $_SESSION['login_error'] = "Email không tồn tại!";
-        header("Location: ../login.php");
+        header("Location: ../../index.php?quanly=dangnhap");
         exit();
     }
 }

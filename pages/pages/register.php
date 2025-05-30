@@ -1,11 +1,11 @@
 <div class="register">
-    <div class="register-form">
+    <form class="register-form" action="/BookingsTickets/pages/actions/register_process.php" method="post">
         <span>Đăng ký</span>
-        <input type="text" name="username" placeholder="Tên đăng nhập">
-        <input type="email" name="email" placeholder="Email">
-        <input type="password" name="password" placeholder="Mật khẩu">
-        <input type="password" name="password" placeholder="Nhập lại mật khẩu">
+        <input type="text" name="name" placeholder="Tên đăng nhập" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Mật khẩu" required>
+        <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu" required>
         <button type="submit">Đăng ký</button>
-        <p>Bạn chưa có tài khoản? <a href="index.php?quanly=dangky">Đăng ký</a></p>
-    </div>
+        <p>Đã có tài khoản? <a href="/BookingsTickets/pages/pages/login.php">Đăng nhập</a></p>
+    </form>
 </div>

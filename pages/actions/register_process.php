@@ -27,20 +27,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Mã hóa mật khẩu
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
     // Thêm người dùng mới vào database
     $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $name, $email, $hashed_password);
+    $stmt->bind_param("sss", $name, $email, $password);
 
     if ($stmt->execute()) {
         $_SESSION['register_success'] = "Đăng ký thành công! Bạn có thể đăng nhập.";
-        header("Location: ../login.php");
+        header("Location: ../../index.php?quanly=dangnhap");
         exit();
     } else {
         $_SESSION['register_error'] = "Đăng ký thất bại: " . $conn->error;
-        header("Location: ../register.php");
+        header("Location: ../../index.php?quanly=dangky");
         exit();
     }
 }
