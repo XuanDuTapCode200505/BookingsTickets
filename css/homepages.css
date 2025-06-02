@@ -1,6 +1,6 @@
 .home-title {
   text-align: center;
-  margin: 30px 0;
+  padding: 30px 0;
 }
 
 .home-title h2 {
@@ -80,3 +80,22 @@
 #nextBtn:hover {
   background-color: #555;
 }
+
+/* begin bonus content */
+.bonus-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+.bonus-slider {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+/* end bonus content */

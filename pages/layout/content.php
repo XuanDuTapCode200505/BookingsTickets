@@ -1,6 +1,4 @@
 <div id="content">
-    <?php include 'pages/layout/sidebar.php'; ?>
-    <div class="main-content">
         <?php if(isset($_GET['quanly'])
         ) {
            $tam = $_GET['quanly'];
@@ -11,6 +9,7 @@
         }elseif($tam == 'dangky'){
             include 'pages/pages/register.php';
         }elseif($tam == 'phim'){
+            include 'pages/layout/sidebar.php';
             include 'pages/pages/movie.php';
         }elseif($tam == 'rap'){
             include 'pages/pages/theater.php';
@@ -19,6 +18,5 @@
         }else{
             include 'pages/homePage.php';
         } ?>
-    </div>
 </div>
 <div class="clear"></div>

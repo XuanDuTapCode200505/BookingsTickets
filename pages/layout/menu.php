@@ -22,4 +22,5 @@
         </ul>
     </div>
 </div>
+<div class="menu-line"></div>
 <div class="clear"></div>

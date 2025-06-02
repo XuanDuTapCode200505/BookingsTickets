@@ -23,10 +23,16 @@
 
 /* begin menu */
 .menu {
-  /* border: 1px solid #ddff00; */
   height: 50px;
   width: 100%;
   background-color: #fffd98;
+  text-decoration: underline;
+}
+
+.menu-line {
+  height: 1.5px;
+  width: 100%;
+  background-color: #000;
 }
 
 .menu-left {

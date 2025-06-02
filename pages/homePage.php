@@ -12,7 +12,7 @@
             <li><img src="img/Phim/diadao.jpg" alt=""><p>Địa Đạo</p><button>Xem Chi Tiết</button></li>
             <li><img src="img/Phim/doisanquy.jpg" alt=""><p>Đội Săn Quỷ</p><button>Xem Chi Tiết</button></li>
             <li><img src="img/Phim/shin.jpg" alt=""><p>Shin cậu bé bút chì</p><button>Xem Chi Tiết</button></li>
-            <li><img src="img/Phim/doraemon_movie44.jpg" alt=""><p>Cuộc phiêu lưu vào trong tranh</p><button>Xem Chi Tiết</button></li>
+            <li><img src="img/Phim/doraemon_movie44.jpg" alt=""><p>Movie 44: Doraemon</p><button>Xem Chi Tiết</button></li>
         </ul>
     </div>
 
@@ -22,6 +22,14 @@
 <div class="home-title">
     <h2>Ưu Đãi</h2>
     <span>Một số ưu đãi dành cho bạn</span>
+    <div class="bonus-content">
+        <ul class="bonus-slider">
+            <li><img src="img/UuDai/sale_t4.jpg" alt=""></li>
+            <li><img src="img/UuDai/QuaTangCGV.png" alt=""></li>
+            <li><img src="img/UuDai/UuDaiSinhNhat.png" alt=""></li>
+            <li><img src="img/UuDai/UuDaiTreEm.png" alt=""></li>
+        </ul>
+    </div>
 </div>
 
 <script src="js/home_content.js"></script>
