@@ -9,7 +9,10 @@
     <link rel="stylesheet" type="text/css" href="css/sidebar.css">
     <link rel="stylesheet" type="text/css" href="css/homepages.css">
     <link rel="stylesheet" type="text/css" href="css/register-form.css">
-    <title>PhimChill</title>
+    <link rel="stylesheet" type="text/css" href="css/footer.css">
+    
+    <title>CGV</title>
+    <link rel="icon" href="https://www.cgv.vn/media/favicon/default/cgvcinemas-vietnam-favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
