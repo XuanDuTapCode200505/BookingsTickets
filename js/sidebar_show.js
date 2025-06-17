@@ -1,18 +1,21 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const slideshow = document.querySelector(".service-menu-showslide ul");
-  const slides = document.querySelectorAll(".service-menu-showslide ul li");
+$(document).ready(function () {
+  const $slideshow = $(".service-menu-showslide ul");
+  const $slides = $(".service-menu-showslide ul li");
 
-  if (!slideshow || slides.length === 0) return;
+  if (!$slideshow.length || !$slides.length) return;
 
   let currentIndex = 0;
-  const totalSlides = slides.length;
+  const totalSlides = $slides.length;
 
   // Thiết lập CSS ban đầu
-  slideshow.style.display = "flex";
-  slideshow.style.transition = "transform 0.5s ease";
-  slides.forEach((slide) => {
-    slide.style.flex = "0 0 100%";
-    slide.style.width = "100%";
+  $slideshow.css({
+    display: "flex",
+    transition: "transform 0.5s ease",
+  });
+
+  $slides.css({
+    flex: "0 0 100%",
+    width: "100%",
   });
 
   // Hàm chuyển slide
@@ -24,25 +27,25 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       currentIndex = index;
     }
-    slideshow.style.transform = `translateX(-${currentIndex * 100}%)`;
+    $slideshow.css("transform", `translateX(-${currentIndex * 100}%)`);
   }
 
   // Tự động chuyển slide
   function startSlideshow() {
     return setInterval(() => {
       showSlide(currentIndex + 1);
-    }, 3000); // Chuyển slide mỗi 3 giây
+    }, 3000);
   }
 
   let slideInterval = startSlideshow();
 
   // Dừng slideshow khi hover
-  slideshow.addEventListener("mouseenter", () => {
-    clearInterval(slideInterval);
-  });
-
-  // Tiếp tục slideshow khi mouse leave
-  slideshow.addEventListener("mouseleave", () => {
-    slideInterval = startSlideshow();
-  });
+  $slideshow.hover(
+    function () {
+      clearInterval(slideInterval);
+    },
+    function () {
+      slideInterval = startSlideshow();
+    }
+  );
 });

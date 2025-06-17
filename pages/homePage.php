@@ -20,7 +20,7 @@
 </div>
 
 <div class="home-title">
-    <h2>Ưu Đãi</h2>
+    <h2>Ưu Đãi</h2>s
     <span>Một số ưu đãi dành cho bạn</span>
     <div class="bonus-content">
         <ul class="bonus-slider">
@@ -31,5 +31,5 @@
         </ul>
     </div>
 </div>
-
+<script src="js/jquery-3.7.1.js"></script>
 <script src="js/home_content.js"></script>

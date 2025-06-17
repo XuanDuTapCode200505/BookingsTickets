@@ -6,6 +6,6 @@
         <input type="password" name="password" placeholder="Mật khẩu" required>
         <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu" required>
         <button type="submit">Đăng ký</button>
-        <p>Đã có tài khoản? <a href="/BookingsTickets/pages/pages/login.php">Đăng nhập</a></p>
+        <p>Đã có tài khoản? <a href="index.php?quanly=dangnhap">Đăng nhập</a></p>
     </form>
 </div>
