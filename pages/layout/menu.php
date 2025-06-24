@@ -8,7 +8,7 @@
         <ul class="list-menu">
                 <li><a href="index.php?quanly=phim">Phim</a></li>
                 <li><a href="index.php?quanly=rap">Rạp</a></li>
-                <li><a href="index.php?quanly=tintuc">Tin tức</a></li>
+                <li><a href="index.php?quanly=ve">Trang vé</a></li>
                 <?php
                 if (isset($_SESSION['user_id'])) {
                     // Đã đăng nhập

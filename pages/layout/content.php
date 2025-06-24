@@ -13,8 +13,8 @@
             include 'pages/pages/movie.php';
         }elseif($tam == 'rap'){
             include 'pages/pages/theater.php';
-        }elseif($tam == 'tintuc'){
-            include 'pages/newsPages.php';
+        }elseif($tam == 've'){
+            include 'pages/Tickets.php';
         }else{
             include 'pages/homePage.php';
         } ?>
