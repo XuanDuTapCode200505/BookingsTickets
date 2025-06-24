@@ -20,7 +20,7 @@
 </div>
 
 <div class="home-title">
-    <h2>Ưu Đãi</h2>s
+    <h2>Ưu Đãi</h2>
     <span>Một số ưu đãi dành cho bạn</span>
     <div class="bonus-content">
         <ul class="bonus-slider">
