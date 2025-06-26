@@ -1,3 +1,9 @@
+<!-- Session Data cho JavaScript -->
+<div id="session-data" style="display: none;" 
+     data-logged-in="<?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>"
+     data-user-id="<?php echo isset($_SESSION['user_id']) ? $_SESSION['user_id'] : ''; ?>">
+</div>
+
 <!-- Banner Section -->
 <div class="banner-section">
     <div class="container">
@@ -175,19 +181,3 @@
     </div>
 </div>
 
-<script>
-function bookMovie(movieId) {
-    // Kiểm tra đăng nhập
-    <?php if (isset($_SESSION['user_id'])): ?>
-        // Đã đăng nhập, chuyển đến trang đặt vé
-        window.location.href = 'index.php?quanly=ve&movie_id=' + movieId;
-    <?php else: ?>
-        // Chưa đăng nhập, yêu cầu đăng nhập
-        alert('Vui lòng đăng nhập để đặt vé!');
-        window.location.href = 'index.php?quanly=dangnhap';
-    <?php endif; ?>
-}
-</script>
-
-<script src="js/jquery-3.7.1.js"></script>
-<script src="js/home_content.js"></script>
