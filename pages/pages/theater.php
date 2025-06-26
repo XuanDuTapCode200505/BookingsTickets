@@ -248,45 +248,4 @@
     </div>
 </div>
 
-<div class="main-content">
-    <div class="theaters-container">
-        <h2 style="color: #fff; text-align: center; margin: 20px 0;">HỆ THỐNG RẠP CGV</h2>
-        
-        <div class="theaters-grid">
-            <?php
-            $sql = "SELECT t.*, COUNT(s.id) as total_screens FROM theaters t 
-                    LEFT JOIN screens s ON t.id = s.theater_id 
-                    GROUP BY t.id ORDER BY t.name";
-            $result = mysqli_query($conn, $sql);
-            
-            if ($result && mysqli_num_rows($result) > 0) {
-                while($theater = mysqli_fetch_assoc($result)) {
-                    echo '<div class="theater-card">';
-                    echo '<div class="theater-header">';
-                    echo '<h3>' . htmlspecialchars($theater['name']) . '</h3>';
-                    echo '<span class="theater-screens">' . $theater['total_screens'] . ' phòng chiếu</span>';
-                    echo '</div>';
-                    echo '<div class="theater-info">';
-                    echo '<p class="location"><i class="icon-location"></i>' . htmlspecialchars($theater['location']) . '</p>';
-                    echo '<div class="theater-actions">';
-                    echo '<button class="btn-showtimes" onclick="viewShowtimes(' . $theater['id'] . ')">Xem lịch chiếu</button>';
-                    echo '<button class="btn-map" onclick="viewMap(\'' . htmlspecialchars($theater['location']) . '\')">Xem bản đồ</button>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '</div>';
-                }
-            } else {
-                echo '<p style="color: #fff; text-align: center;">Hiện tại không có rạp nào.</p>';
-            }
-            ?>
-        </div>
-    </div>
-</div>
-
-<!-- Modal lịch chiếu -->
-<div id="showtimesModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal('showtimesModal')">&times;</span>
-        <div id="showtimesContent"></div>
-    </div>
-</div>
+<!-- CSS và JavaScript đã được tách ra file riêng -->

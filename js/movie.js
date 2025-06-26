@@ -1,8 +1,10 @@
 $(document).ready(function () {
   // Function để hiển thị chi tiết phim
   window.showMovieDetail = function (movieId) {
-    // Hiển thị loading
-    $("#movieDetail").html(
+    console.log("showMovieDetail called with movieId:", movieId);
+
+    // Hiển thị loading (sửa từ movieDetail thành movieDetails)
+    $("#movieDetails").html(
       '<div style="text-align: center; padding: 40px; color: #ccc;"><p>Đang tải thông tin phim...</p></div>'
     );
     $("#movieModal").show();
@@ -14,22 +16,49 @@ $(document).ready(function () {
       data: { movie_id: movieId },
       dataType: "json",
       success: function (response) {
+        console.log("AJAX success:", response);
         if (response.success) {
           displayMovieDetail(response.data);
         } else {
-          $("#movieDetail").html(`
+          $("#movieDetails").html(`
                         <div style="text-align: center; padding: 40px; color: #f44336;">
                             <p>Không thể tải thông tin phim.</p>
                         </div>
                     `);
         }
       },
-      error: function () {
-        $("#movieDetail").html(`
-                    <div style="text-align: center; padding: 40px; color: #f44336;">
-                        <p>Có lỗi xảy ra khi tải thông tin phim.</p>
-                    </div>
-                `);
+      error: function (xhr, status, error) {
+        console.log("AJAX error:", xhr, status, error);
+
+        // Fallback: hiển thị thông tin cơ bản từ DOM
+        const $movieCard = $(
+          `button[onclick="showMovieDetail(${movieId})"]`
+        ).closest(".movie-card");
+        const title = $movieCard.find("h3").text() || "Tên phim";
+        const genre = $movieCard.find(".genre").text() || "Thể loại chưa rõ";
+        const duration =
+          $movieCard.find(".duration").text() || "Thời lượng chưa rõ";
+        const rating = $movieCard.find(".rating").text() || "Chưa có đánh giá";
+        const posterUrl = $movieCard.find("img").attr("src") || "";
+
+        $("#movieDetails").html(`
+          <div class="movie-detail">
+            <img src="${posterUrl}" alt="${title}" style="max-width: 200px;">
+            <div class="movie-info-detail">
+              <h2>${title}</h2>
+              <p><strong>Thể loại:</strong> <span class="genre">${genre}</span></p>
+              <p><strong>Thời lượng:</strong> ${duration}</p>
+              <p><strong>Đạo diễn:</strong> Đang cập nhật</p>
+              <p><strong>Diễn viên:</strong> Đang cập nhật</p>
+              <p><strong>Đánh giá:</strong> <span class="rating">${rating}</span></p>
+              <p><strong>Mô tả:</strong></p>
+              <p>Thông tin chi tiết đang được cập nhật. Vui lòng liên hệ rạp để biết thêm thông tin.</p>
+              <div style="margin-top: 20px;">
+                <button class="btn-book" onclick="bookMovie(${movieId})">Đặt vé ngay</button>
+              </div>
+            </div>
+          </div>
+        `);
       },
     });
   };
@@ -66,7 +95,7 @@ $(document).ready(function () {
                 </div>
             </div>
         `;
-    $("#movieDetail").html(html);
+    $("#movieDetails").html(html);
   }
 
   // Function để đặt vé phim - phiên bản đơn giản nhất
