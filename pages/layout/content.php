@@ -9,12 +9,15 @@
         }elseif($tam == 'dangky'){
             include 'pages/pages/register.php';
         }elseif($tam == 'phim'){
-            include 'pages/layout/sidebar.php';
             include 'pages/pages/movie.php';
         }elseif($tam == 'rap'){
             include 'pages/pages/theater.php';
-        }elseif($tam == 've'){
+        }elseif($tam == 've' || $tam == 'dat-ve'){
             include 'pages/Tickets.php';
+        }elseif($tam == 'lich-su-dat-ve'){
+            include 'pages/pages/booking_history.php';
+        }elseif($tam == 'admin'){
+            include 'admin/index.php';
         }else{
             include 'pages/homePage.php';
         } ?>

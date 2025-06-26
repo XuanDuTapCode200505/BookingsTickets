@@ -1,3 +1,5 @@
+<?php require_once 'admin/config/config.php'; ?>
+
 <style>
 .cgv-container {
     background: #000;
@@ -329,3 +331,305 @@
 </div>
 <script src="js/jquery-3.7.1.js"></script>
 <script src="js/theater.js"></script>
+
+<div class="main-content">
+    <div class="theaters-container">
+        <h2 style="color: #fff; text-align: center; margin: 20px 0;">HỆ THỐNG RẠP CGV</h2>
+        
+        <div class="theaters-grid">
+            <?php
+            $sql = "SELECT t.*, COUNT(s.id) as total_screens FROM theaters t 
+                    LEFT JOIN screens s ON t.id = s.theater_id 
+                    GROUP BY t.id ORDER BY t.name";
+            $result = mysqli_query($conn, $sql);
+            
+            if ($result && mysqli_num_rows($result) > 0) {
+                while($theater = mysqli_fetch_assoc($result)) {
+                    echo '<div class="theater-card">';
+                    echo '<div class="theater-header">';
+                    echo '<h3>' . htmlspecialchars($theater['name']) . '</h3>';
+                    echo '<span class="theater-screens">' . $theater['total_screens'] . ' phòng chiếu</span>';
+                    echo '</div>';
+                    echo '<div class="theater-info">';
+                    echo '<p class="location"><i class="icon-location"></i>' . htmlspecialchars($theater['location']) . '</p>';
+                    echo '<div class="theater-actions">';
+                    echo '<button class="btn-showtimes" onclick="viewShowtimes(' . $theater['id'] . ')">Xem lịch chiếu</button>';
+                    echo '<button class="btn-map" onclick="viewMap(\'' . htmlspecialchars($theater['location']) . '\')">Xem bản đồ</button>';
+                    echo '</div>';
+                    echo '</div>';
+                    echo '</div>';
+                }
+            } else {
+                echo '<p style="color: #fff; text-align: center;">Hiện tại không có rạp nào.</p>';
+            }
+            ?>
+        </div>
+    </div>
+</div>
+
+<!-- Modal lịch chiếu -->
+<div id="showtimesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('showtimesModal')">&times;</span>
+        <div id="showtimesContent"></div>
+    </div>
+</div>
+
+<script>
+function viewShowtimes(theaterId) {
+    fetch('pages/actions/get_theater_showtimes.php?theater_id=' + theaterId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let content = '<h2>Lịch chiếu - ' + data.theater_name + '</h2>';
+                content += '<div class="showtimes-list">';
+                
+                if (data.movies.length > 0) {
+                    data.movies.forEach(movie => {
+                        content += '<div class="movie-showtimes">';
+                        content += '<div class="movie-header">';
+                        content += '<img src="' + movie.poster_url + '" alt="' + movie.title + '" style="width: 80px; height: 120px; object-fit: cover; border-radius: 5px;">';
+                        content += '<div class="movie-info">';
+                        content += '<h3>' + movie.title + '</h3>';
+                        content += '<p>' + movie.genre + ' • ' + movie.duration + ' phút</p>';
+                        content += '</div>';
+                        content += '</div>';
+                        content += '<div class="showtimes">';
+                        movie.showtimes.forEach(showtime => {
+                            content += '<button class="showtime-btn" onclick="bookShowtime(' + showtime.id + ')">';
+                            content += showtime.show_time + '<br><span class="price">' + formatPrice(showtime.price) + '</span>';
+                            content += '</button>';
+                        });
+                        content += '</div>';
+                        content += '</div>';
+                    });
+                } else {
+                    content += '<p>Hiện tại không có lịch chiếu nào.</p>';
+                }
+                
+                content += '</div>';
+                document.getElementById('showtimesContent').innerHTML = content;
+                document.getElementById('showtimesModal').style.display = 'block';
+            }
+        });
+}
+
+function bookShowtime(showtimeId) {
+    <?php if (isset($_SESSION['user_id'])): ?>
+        // Đã đăng nhập, chuyển đến trang đặt vé
+        window.location.href = 'index.php?quanly=ve&showtime_id=' + showtimeId;
+    <?php else: ?>
+        // Chưa đăng nhập, yêu cầu đăng nhập
+        alert('Vui lòng đăng nhập để đặt vé!');
+        window.location.href = 'index.php?quanly=dangnhap';
+    <?php endif; ?>
+}
+
+function viewMap(location) {
+    const url = 'https://www.google.com/maps/search/' + encodeURIComponent(location);
+    window.open(url, '_blank');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('showtimesModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
+
+<style>
+.theaters-container {
+    padding: 20px;
+    background-color: #000;
+}
+
+.theaters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.theater-card {
+    background-color: #1a1a1a;
+    border-radius: 10px;
+    padding: 20px;
+    transition: transform 0.3s ease;
+    border: 1px solid #333;
+}
+
+.theater-card:hover {
+    transform: translateY(-5px);
+    border-color: #e50914;
+}
+
+.theater-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.theater-header h3 {
+    color: #e50914;
+    margin: 0;
+    font-size: 20px;
+}
+
+.theater-screens {
+    background-color: #e50914;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.theater-info {
+    color: white;
+}
+
+.location {
+    color: #ccc;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+.theater-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-showtimes, .btn-map {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-showtimes {
+    background-color: #e50914;
+    color: white;
+    flex: 1;
+}
+
+.btn-map {
+    background-color: #666;
+    color: white;
+}
+
+.btn-showtimes:hover, .btn-map:hover {
+    transform: scale(1.05);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    margin: 2% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1000px;
+    color: white;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+}
+
+.close:hover {
+    color: #fff;
+}
+
+.showtimes-list {
+    margin-top: 30px;
+}
+
+.movie-showtimes {
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.movie-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.movie-header .movie-info {
+    margin-left: 15px;
+}
+
+.movie-header h3 {
+    color: #e50914;
+    margin: 0 0 5px 0;
+}
+
+.movie-header p {
+    color: #ccc;
+    margin: 0;
+}
+
+.showtimes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.showtime-btn {
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 80px;
+}
+
+.showtime-btn:hover {
+    background-color: #e50914;
+    border-color: #e50914;
+}
+
+.showtime-btn .price {
+    font-size: 12px;
+    color: #ffd700;
+}
+</style>

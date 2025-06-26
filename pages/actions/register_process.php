@@ -7,30 +7,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
-
-    // Kiểm tra mật khẩu xác nhận
-    if ($password !== $confirm_password) {
-        $_SESSION['register_error'] = "Mật khẩu xác nhận không khớp!";
-        header("Location: ../register.php");
+    
+    // Kiểm tra dữ liệu đầu vào
+    if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
+        $_SESSION['register_error'] = "Vui lòng điền đầy đủ thông tin!";
+        header("Location: ../../index.php?quanly=dangky");
         exit();
     }
-
+    
+    if ($password !== $confirm_password) {
+        $_SESSION['register_error'] = "Mật khẩu không khớp!";
+        header("Location: ../../index.php?quanly=dangky");
+        exit();
+    }
+    
+    if (strlen($password) < 6) {
+        $_SESSION['register_error'] = "Mật khẩu phải có ít nhất 6 ký tự!";
+        header("Location: ../../index.php?quanly=dangky");
+        exit();
+    }
+    
     // Kiểm tra email đã tồn tại chưa
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows > 0) {
-        $_SESSION['register_error'] = "Email này đã được sử dụng!";
-        header("Location: ../register.php");
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $_SESSION['register_error'] = "Email đã được sử dụng!";
+        header("Location: ../../index.php?quanly=dangky");
         exit();
     }
-
-    // Thêm người dùng mới vào database
+    
+    // Thêm người dùng mới
     $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", $name, $email, $password);
-
+    
     if ($stmt->execute()) {
         $_SESSION['register_success'] = "Đăng ký thành công! Bạn có thể đăng nhập.";
         header("Location: ../../index.php?quanly=dangnhap");

@@ -8,12 +8,15 @@
         <ul class="list-menu">
                 <li><a href="index.php?quanly=phim">Phim</a></li>
                 <li><a href="index.php?quanly=rap">Rạp</a></li>
-                <li><a href="index.php?quanly=ve">Trang vé</a></li>
                 <?php
                 if (isset($_SESSION['user_id'])) {
                     // Đã đăng nhập
+                    echo '<li><a href="index.php?quanly=lich-su-dat-ve">Lịch sử đặt vé</a></li>';
+                    if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
+                        echo '<li><a href="index.php?quanly=admin">Quản trị</a></li>';
+                    }
                     echo '<li><a href="/BookingsTickets/pages/actions/logout_process.php">Đăng xuất</a></li>';
-                    // echo '<li><span style="color:#e71a0f;">Xin chào, ' . htmlspecialchars($_SESSION['name']) . '</span></li>';
+                    echo '<li><span style="color:#e71a0f;">Xin chào, ' . htmlspecialchars($_SESSION['name']) . '</span></li>';
                 } else {
                     // Chưa đăng nhập
                     echo '<li><a href="index.php?quanly=dangnhap">Đăng nhập</a></li>';
