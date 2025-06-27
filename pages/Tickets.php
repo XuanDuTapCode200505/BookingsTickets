@@ -15,9 +15,80 @@ if (!isset($_SESSION['user_id'])) {
 
 $showtime_id = isset($_GET['showtime_id']) ? intval($_GET['showtime_id']) : 0;
 $movie_id = isset($_GET['movie_id']) ? intval($_GET['movie_id']) : 0;
+$theater_name = isset($_GET['theater']) ? urldecode($_GET['theater']) : '';
 
-// Nếu có movie_id, hiển thị lịch chiếu của phim đó
-if ($movie_id && !$showtime_id) {
+// Nếu có theater_name, hiển thị lịch chiếu của rạp đó
+if ($theater_name && !$showtime_id && !$movie_id) {
+    $sql = "SELECT st.*, s.screen_name, t.name as theater_name, m.title as movie_title, m.poster_url
+            FROM showtimes st
+            INNER JOIN screens s ON st.screen_id = s.id
+            INNER JOIN theaters t ON s.theater_id = t.id  
+            INNER JOIN movies m ON st.movie_id = m.id
+            WHERE t.name LIKE ? AND st.show_date >= CURDATE()
+            ORDER BY m.title, st.show_date, st.show_time";
+    $stmt = $conn->prepare($sql);
+    
+    if (!$stmt) {
+        echo '<div style="color: red; padding: 20px; text-align: center;">Có lỗi xảy ra. Vui lòng thử lại sau.</div>';
+        exit();
+    }
+    
+    $theater_search = '%' . $theater_name . '%';
+    $stmt->bind_param("s", $theater_search);
+    $stmt->execute();
+    $showtimes = $stmt->get_result();
+?>
+
+<div class="main-content">
+    <div class="booking-container">
+        <h2 style="color: #fff; text-align: center; margin: 20px 0;">
+            🎬 LỊCH CHIẾU - <?php echo htmlspecialchars($theater_name); ?>
+        </h2>
+        
+        <div class="theater-showtimes">
+            <?php if ($showtimes->num_rows > 0): ?>
+                <?php 
+                $current_movie = '';
+                while($showtime = $showtimes->fetch_assoc()): 
+                    if ($current_movie != $showtime['movie_title']) {
+                        if ($current_movie != '') echo '</div></div>'; // Đóng movie block trước
+                        $current_movie = $showtime['movie_title'];
+                ?>
+                <div class="movie-showtimes-block">
+                    <div class="movie-header">
+                        <img src="<?php echo $showtime['poster_url']; ?>" alt="<?php echo htmlspecialchars($showtime['movie_title']); ?>" class="movie-poster-small">
+                        <div class="movie-title">
+                            <h3><?php echo htmlspecialchars($showtime['movie_title']); ?></h3>
+                            <p class="theater-info">📍 <?php echo htmlspecialchars($showtime['theater_name']); ?></p>
+                        </div>
+                    </div>
+                    <div class="showtimes-grid">
+                <?php } ?>
+                        <div class="showtime-card">
+                            <div class="showtime-info">
+                                <p><strong>📅 Ngày:</strong> <?php echo date('d/m/Y', strtotime($showtime['show_date'])); ?></p>
+                                <p><strong>🕐 Giờ:</strong> <?php echo date('H:i', strtotime($showtime['show_time'])); ?></p>
+                                <p><strong>🏠 Phòng:</strong> <?php echo htmlspecialchars($showtime['screen_name']); ?></p>
+                                <p><strong>💰 Giá:</strong> <?php echo number_format($showtime['price'], 0, ',', '.'); ?> VNĐ</p>
+                            </div>
+                            <button class="btn-select-showtime" onclick="selectShowtime(<?php echo $showtime['id']; ?>)">
+                                🎫 Đặt vé ngay
+                            </button>
+                        </div>
+                <?php endwhile; ?>
+                <?php if ($current_movie != '') echo '</div></div>'; // Đóng movie block cuối ?>
+            <?php else: ?>
+                <div style="color: #fff; text-align: center; padding: 40px;">
+                    <h3>😔 Không có lịch chiếu</h3>
+                    <p>Hiện tại rạp <strong><?php echo htmlspecialchars($theater_name); ?></strong> chưa có lịch chiếu nào từ hôm nay.</p>
+                    <p><a href="index.php?quanly=rap" style="color: #e71a0f;">← Quay lại trang rạp</a></p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<?php } elseif ($movie_id && !$showtime_id) {
     $sql = "SELECT st.*, s.screen_name, t.name as theater_name, m.title as movie_title
             FROM showtimes st
             INNER JOIN screens s ON st.screen_id = s.id

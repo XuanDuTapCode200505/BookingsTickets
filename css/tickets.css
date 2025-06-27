@@ -258,3 +258,89 @@
     text-align: center;
   }
 }
+
+/* Theater showtimes display */
+.theater-showtimes {
+  margin-top: 20px;
+}
+
+.movie-showtimes-block {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(231, 26, 15, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.movie-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(231, 26, 15, 0.3);
+}
+
+.movie-poster-small {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-right: 15px;
+}
+
+.movie-title h3 {
+  color: #e71a0f;
+  margin: 0 0 5px 0;
+  font-size: 18px;
+}
+
+.theater-info {
+  color: #ccc;
+  margin: 0;
+  font-size: 14px;
+}
+
+.showtimes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.showtime-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(231, 26, 15, 0.2);
+  border-radius: 6px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.showtime-card:hover {
+  border-color: rgba(231, 26, 15, 0.6);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.showtime-info {
+  margin-bottom: 15px;
+}
+
+.showtime-info p {
+  color: #ddd;
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Responsive for theater showtimes */
+@media (max-width: 768px) {
+  .movie-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .movie-poster-small {
+    margin: 0 0 10px 0;
+  }
+
+  .showtimes-grid {
+    grid-template-columns: 1fr;
+  }
+}

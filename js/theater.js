@@ -167,9 +167,10 @@ function getTheaterScreens(theaterName) {
 // Function xem lịch chiếu rạp
 window.viewTheaterShowtimes = function (theaterName) {
   $("#theaterInfoModal").remove();
-  alert(
-    "🎬 Chức năng xem lịch chiếu cho " + theaterName + " sẽ được cập nhật!"
-  );
+
+  // Chuyển đến trang đặt vé với thông tin rạp
+  const theaterParam = encodeURIComponent(theaterName);
+  window.location.href = `index.php?quanly=ve&theater=${theaterParam}`;
 };
 
 // Function mở Google Maps
