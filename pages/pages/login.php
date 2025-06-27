@@ -10,10 +10,23 @@ if (isset($_SESSION['register_success'])) {
     echo '<div class="success">' . htmlspecialchars($_SESSION['register_success']) . '</div>';
     unset($_SESSION['register_success']);
 }
+
+// Hiển thị thông báo đặc biệt cho admin
+if (isset($_GET['admin_required'])) {
+    echo '<div class="info" style="background: #d1ecf1; color: #0c5460; padding: 15px; border-radius: 5px; margin: 10px 0; border: 1px solid #bee5eb;">';
+    echo '<i class="fas fa-info-circle"></i> <strong>Yêu cầu đăng nhập Admin:</strong> Vui lòng đăng nhập bằng tài khoản admin để truy cập Admin Panel.';
+    echo '</div>';
+}
+
+if (isset($_GET['timeout'])) {
+    echo '<div class="warning" style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin: 10px 0; border: 1px solid #ffeaa7;">';
+    echo '<i class="fas fa-clock"></i> <strong>Phiên đăng nhập đã hết hạn!</strong> Vui lòng đăng nhập lại.';
+    echo '</div>';
+}
 ?>
 
 <div class="login">
-    <form class="login-form" action="/BookingsTickets/pages/actions/login_process.php" method="post">
+    <form class="login-form" action="pages/actions/login_process_simple.php" method="post">
         <span>Đăng nhập CGV</span>
         
         <div class="form-group">

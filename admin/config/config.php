@@ -1,25 +1,62 @@
 <?php
-// Cấu hình session để có thể duy trì đăng nhập
+// Cấu hình session với bảo mật cao cho admin
 if (session_status() == PHP_SESSION_NONE) {
-    // Cấu hình session lifetime linh hoạt
-    ini_set('session.gc_maxlifetime', 86400); // 24 hours server-side
+    // Cấu hình session timeout ngắn hơn cho admin
+    if (strpos($_SERVER['REQUEST_URI'], '/admin/') !== false) {
+        ini_set('session.gc_maxlifetime', 600); // 10 phút cho admin
+    } else {
+        ini_set('session.gc_maxlifetime', 1800); // 30 phút cho user thường
+    }
     
     // Chỉ sử dụng cookies (không dùng URL rewriting)
     ini_set('session.use_only_cookies', 1);
     
-    // Bảo mật session
+    // Bảo mật session cao
     ini_set('session.cookie_httponly', 1);
     ini_set('session.cookie_secure', 0); // Set thành 1 nếu dùng HTTPS
-    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.cookie_samesite', 'Strict'); // Strict cho admin
     
-    // Session cookie sẽ tồn tại cho đến khi browser đóng (mặc định)
-    // Trừ khi user chọn "Remember Me" thì sẽ được extend
+    // Session cookie sẽ bị xóa khi đóng browser (session cookie)
     ini_set('session.cookie_lifetime', 0);
     
+    // Regenerate session ID thường xuyên cho admin
+    ini_set('session.use_strict_mode', 1);
+    
     // Tên session
-    session_name('CGV_ADMIN_SESSION');
+    session_name('CGV_SESSION');
     
     session_start();
+    
+    // Regenerate session ID cho admin để tăng bảo mật
+    if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
+        if (!isset($_SESSION['admin_session_regenerated']) || 
+            (time() - $_SESSION['admin_session_regenerated']) > 300) { // 5 phút
+            session_regenerate_id(true);
+            $_SESSION['admin_session_regenerated'] = time();
+        }
+    }
+    
+    // Cấu hình timeout khác nhau cho admin và user
+    $timeout_duration = 1800; // 30 phút mặc định
+    if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
+        $timeout_duration = 600; // 10 phút cho admin
+    }
+    
+    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
+        // Session hết hạn, đăng xuất
+        session_unset();
+        session_destroy();
+        // Khởi tạo session mới
+        session_start();
+        // Chuyển hướng về trang đăng nhập chính nếu đang ở admin area
+        if (strpos($_SERVER['REQUEST_URI'], '/admin/') !== false) {
+            header('Location: ../index.php?quanly=dangnhap&timeout=1&admin_required=1');
+            exit();
+        }
+    } else {
+        // Chỉ cập nhật last_activity nếu session còn hợp lệ
+        $_SESSION['last_activity'] = time();
+    }
 }
 
 define('DB_SERVER', 'localhost');

@@ -1,4 +1,10 @@
-<?php require_once 'admin/config/config.php'; ?>
+<?php 
+// Đảm bảo session được khởi tạo
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+require_once 'admin/config/config.php'; 
+?>
 
 <!-- CSS và JavaScript đã được tách ra file riêng: css/theater.css và js/theater.js -->
 

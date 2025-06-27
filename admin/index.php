@@ -3,7 +3,7 @@ require_once 'config/config.php';
 
 // Kiểm tra quyền admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header('Location: ../index.php?quanly=dangnhap');
+    header('Location: ../index.php?quanly=dangnhap&admin_required=1');
     exit();
 }
 
@@ -46,7 +46,10 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         <div class="header-right">
             <div class="admin-info">
                 <i class="fas fa-user-shield"></i>
-            <span>Xin chào, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
+                <span>Xin chào, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
+                <small style="display: block; font-size: 11px; opacity: 0.8;">
+                    🔒 Auto logout: 10 phút | 🚪 Logout khi đóng tab
+                </small>
             </div>
             <a href="../pages/actions/logout_process.php" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Đăng xuất
@@ -146,6 +149,20 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                         echo '<div class="page-header">';
                         echo '<h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>';
                         echo '<p class="page-subtitle">Tổng quan hệ thống quản lý CGV</p>';
+                    echo '</div>';
+                    
+                    // Hiển thị thông báo đăng nhập thành công
+                    if (isset($_SESSION['login_success'])) {
+                        echo '<div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb;">';
+                        echo '<i class="fas fa-check-circle"></i> ' . htmlspecialchars($_SESSION['login_success']);
+                        echo '</div>';
+                        unset($_SESSION['login_success']); // Xóa thông báo sau khi hiển thị
+                    }
+                    
+                    // Thông báo chào mừng admin
+                    echo '<div class="welcome-admin" style="background: linear-gradient(135deg, #e50914, #ff6b6b); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;">';
+                    echo '<h3 style="margin: 0 0 10px 0;"><i class="fas fa-crown"></i> Chào mừng Admin ' . htmlspecialchars($_SESSION['name']) . '!</h3>';
+                    echo '<p style="margin: 0; opacity: 0.9;">Bạn đang trong hệ thống quản trị CGV Cinema</p>';
                     echo '</div>';
                     
                         // Stats Cards
@@ -265,5 +282,120 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
     </div>
 
     <script src="js/admin.js"></script>
+    
+    <!-- Admin Auto Logout Script - Đăng xuất khi đóng tab -->
+    <script>
+        (function() {
+            'use strict';
+            
+            let isInternalNavigation = false;
+            
+            // Detect internal navigation trong admin
+            document.addEventListener('click', function(event) {
+                const target = event.target.closest('a');
+                if (target && target.href) {
+                    const currentDomain = window.location.hostname;
+                    const linkDomain = new URL(target.href).hostname;
+                    
+                    // Nếu là link nội bộ admin, đánh dấu internal navigation
+                    if (linkDomain === currentDomain || linkDomain === '') {
+                        isInternalNavigation = true;
+                        console.log('🔗 Admin internal navigation:', target.href);
+                        
+                        // Reset flag sau 500ms
+                        setTimeout(() => {
+                            isInternalNavigation = false;
+                        }, 500);
+                    }
+                }
+            });
+            
+            // Detect form submit trong admin
+            document.addEventListener('submit', function(event) {
+                isInternalNavigation = true;
+                console.log('📝 Admin form submit detected');
+                setTimeout(() => {
+                    isInternalNavigation = false;
+                }, 500);
+            });
+            
+            // Function để logout
+            function performAdminLogout() {
+                console.log('🚪 Admin tab closing - performing logout');
+                
+                // Sử dụng sendBeacon để đảm bảo logout request được gửi
+                const logoutUrl = '../pages/actions/logout_process.php';
+                
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon(logoutUrl);
+                } else {
+                    // Fallback cho browser cũ
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', logoutUrl, false); // Synchronous
+                    xhr.send();
+                }
+            }
+            
+            // Detect khi đóng tab admin (chỉ khi KHÔNG phải internal navigation)
+            window.addEventListener('beforeunload', function(event) {
+                if (!isInternalNavigation) {
+                    console.log('🔐 Admin tab/window closing - logging out');
+                    performAdminLogout();
+                } else {
+                    console.log('🔗 Admin internal navigation - NOT logging out');
+                }
+            });
+            
+            // Detect khi admin inactive quá lâu (10 phút)
+            let adminInactiveTimer;
+            const ADMIN_INACTIVE_TIME = 10 * 60 * 1000; // 10 phút
+            
+            function resetAdminTimer() {
+                clearTimeout(adminInactiveTimer);
+                adminInactiveTimer = setTimeout(function() {
+                    alert('⚠️ Admin session đã hết hạn do không hoạt động!');
+                    window.location.href = '../pages/actions/logout_process.php';
+                }, ADMIN_INACTIVE_TIME);
+            }
+            
+            // Track admin activity
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(function(event) {
+                document.addEventListener(event, resetAdminTimer, true);
+            });
+            
+            // Khởi tạo admin security
+            document.addEventListener('DOMContentLoaded', function() {
+                resetAdminTimer();
+                console.log('🔐 Admin security system activated');
+                console.log('📍 Admin page:', window.location.href);
+                
+                // Thêm warning khi admin cố gắng navigate away
+                window.addEventListener('beforeunload', function(event) {
+                    if (!isInternalNavigation) {
+                        event.preventDefault();
+                        event.returnValue = 'Bạn đang thoát khỏi Admin Panel. Session sẽ bị đăng xuất!';
+                        return 'Bạn đang thoát khỏi Admin Panel. Session sẽ bị đăng xuất!';
+                    }
+                });
+            });
+            
+            // Detect khi tab admin mất focus quá lâu (30 phút)
+            let adminFocusTime = Date.now();
+            
+            window.addEventListener('blur', function() {
+                adminFocusTime = Date.now();
+            });
+            
+            window.addEventListener('focus', function() {
+                const timeDiff = Date.now() - adminFocusTime;
+                // Nếu admin tab mất focus quá 30 phút, logout
+                if (timeDiff > 30 * 60 * 1000) {
+                    alert('⚠️ Admin session đã hết hạn do tab mất focus quá lâu!');
+                    window.location.href = '../pages/actions/logout_process.php';
+                }
+            });
+            
+        })();
+    </script>
 </body>
 </html> 

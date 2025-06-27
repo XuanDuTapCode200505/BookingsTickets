@@ -3,32 +3,44 @@ $(document).ready(function () {
   window.showMovieDetail = function (movieId) {
     console.log("showMovieDetail called with movieId:", movieId);
 
-    // Hiển thị loading (sửa từ movieDetail thành movieDetails)
-    $("#movieDetails").html(
-      '<div style="text-align: center; padding: 40px; color: #ccc;"><p>Đang tải thông tin phim...</p></div>'
-    );
+    // Hiển thị modal trước
     $("#movieModal").show();
+
+    // Hiển thị loading
+    $("#movieDetails").html(
+      '<div style="text-align: center; padding: 40px; color: #fff;"><p>Đang tải thông tin phim...</p></div>'
+    );
+
+    // Xác định đường dẫn đúng - kiểm tra từ root
+    var baseUrl =
+      window.location.origin +
+      window.location.pathname.replace(/\/[^\/]*$/, "/");
+    var ajaxUrl = baseUrl + "pages/actions/get_movie_detail.php";
+
+    console.log("AJAX URL:", ajaxUrl);
 
     // Gửi AJAX request để lấy chi tiết phim
     $.ajax({
-      url: "pages/actions/get_movie_detail.php",
+      url: ajaxUrl,
       type: "POST",
       data: { movie_id: movieId },
       dataType: "json",
+      timeout: 10000, // 10 seconds timeout
       success: function (response) {
         console.log("AJAX success:", response);
         if (response.success) {
           displayMovieDetail(response.data);
         } else {
           $("#movieDetails").html(`
-                        <div style="text-align: center; padding: 40px; color: #f44336;">
-                            <p>Không thể tải thông tin phim.</p>
-                        </div>
-                    `);
+            <div style="text-align: center; padding: 40px; color: #f44336;">
+              <p>Lỗi: ${response.message || "Không thể tải thông tin phim."}</p>
+            </div>
+          `);
         }
       },
       error: function (xhr, status, error) {
         console.log("AJAX error:", xhr, status, error);
+        console.log("Response text:", xhr.responseText);
 
         // Fallback: hiển thị thông tin cơ bản từ DOM
         const $movieCard = $(
@@ -70,27 +82,32 @@ $(document).ready(function () {
                 <img src="${movie.poster_url}" alt="${movie.title}">
                 <div class="movie-info-detail">
                     <h2>${movie.title}</h2>
-                    <p><strong>Thể loại:</strong> <span class="genre">${
-                      movie.genre
-                    }</span></p>
-                    <p><strong>Thời lượng:</strong> ${movie.duration} phút</p>
-                    <p><strong>Đạo diễn:</strong> ${
-                      movie.director || "Đang cập nhật"
-                    }</p>
-                    <p><strong>Diễn viên:</strong> ${
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <p><strong>🎭 Thể loại:</strong> <span class="genre">${
+                          movie.genre
+                        }</span></p>
+                        <p><strong>⏱️ Thời lượng:</strong> ${
+                          movie.duration
+                        } phút</p>
+                        <p><strong>🎬 Đạo diễn:</strong> ${
+                          movie.director || "Đang cập nhật"
+                        }</p>
+                        <p><strong>⭐ Đánh giá:</strong> <span class="rating">${
+                          movie.rating || "Chưa có"
+                        }/10</span></p>
+                    </div>
+                    <p><strong>🎭 Diễn viên:</strong> ${
                       movie.cast || "Đang cập nhật"
                     }</p>
-                    <p><strong>Đánh giá:</strong> <span class="rating">${
-                      movie.rating || "Chưa có"
-                    }/10</span></p>
-                    <p><strong>Mô tả:</strong></p>
-                    <p>${
-                      movie.description || "Thông tin mô tả đang được cập nhật."
+                    <p><strong>📝 Mô tả:</strong></p>
+                    <p style="text-align: justify; margin-bottom: 25px;">${
+                      movie.description ||
+                      "Thông tin mô tả đang được cập nhật. Hãy liên hệ rạp để biết thêm chi tiết về bộ phim này."
                     }</p>
-                    <div style="margin-top: 20px;">
+                    <div style="text-align: center;">
                         <button class="btn-book" onclick="bookMovie(${
                           movie.id
-                        })">Đặt vé ngay</button>
+                        })">🎫 Đặt vé ngay</button>
                     </div>
                 </div>
             </div>

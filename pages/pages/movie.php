@@ -1,4 +1,10 @@
-<?php require_once 'admin/config/config.php'; ?>
+<?php 
+// Đảm bảo session được khởi tạo
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+require_once 'admin/config/config.php'; 
+?>
 
 <div class="main-content">
     <div class="movies-container">

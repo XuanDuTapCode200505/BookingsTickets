@@ -46,6 +46,9 @@
     <!-- Load jQuery cho tất cả trang -->
     <script src="js/jquery-3.7.1.js"></script>
     
+    <!-- Load Auto Logout System -->
+    <script src="js/auto_logout.js"></script>
+    
     <?php 
     // Load JavaScript riêng cho từng trang
     if (isset($_GET['quanly'])) {
