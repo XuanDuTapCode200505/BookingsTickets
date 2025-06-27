@@ -54,20 +54,24 @@
     }, 100);
   });
 
-  // Detect khi user đóng tab/browser (chỉ khi KHÔNG phải internal navigation)
+  // TEMPORARILY DISABLED - Detect khi user đóng tab/browser
+  /*
   window.addEventListener("beforeunload", function (event) {
     if (isLoggedIn() && !isInternalNavigation) {
       // Chỉ logout khi thực sự đóng tab/browser
       sendLogoutRequest();
     }
   });
+  */
 
-  // Detect khi tab không active trong thời gian dài
+  // TEMPORARILY DISABLED - Auto logout after inactivity
   let inactiveTimer;
-  const INACTIVE_TIME = 30 * 60 * 1000; // 30 phút
+  const INACTIVE_TIME = 60 * 60 * 1000; // 60 phút (tăng lên)
 
   function resetInactiveTimer() {
     clearTimeout(inactiveTimer);
+    // TEMPORARILY DISABLED
+    /*
     if (isLoggedIn()) {
       inactiveTimer = setTimeout(function () {
         // Redirect đến trang đăng xuất
@@ -75,6 +79,7 @@
         window.location.href = "pages/actions/logout_process.php";
       }, INACTIVE_TIME);
     }
+    */
   }
 
   // Track user activity
@@ -100,7 +105,8 @@
     }
   });
 
-  // Detect khi tab mất focus và lấy lại focus
+  // TEMPORARILY DISABLED - Tab focus detection
+  /*
   let tabFocusTime = Date.now();
 
   window.addEventListener("blur", function () {
@@ -117,4 +123,5 @@
       window.location.href = "pages/actions/logout_process.php";
     }
   });
+  */
 })();

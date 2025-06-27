@@ -37,9 +37,9 @@ if (session_status() == PHP_SESSION_NONE) {
     }
     
     // Cấu hình timeout khác nhau cho admin và user
-    $timeout_duration = 1800; // 30 phút mặc định
+    $timeout_duration = 3600; // 60 phút mặc định (tăng lên)
     if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
-        $timeout_duration = 600; // 10 phút cho admin
+        $timeout_duration = 1800; // 30 phút cho admin (tăng lên)
     }
     
     // Chỉ kiểm tra timeout nếu đã có session user_id (đã đăng nhập)

@@ -1,5 +1,12 @@
 <?php 
-require_once 'admin/config/config.php';
+// Đảm bảo session được khởi tạo
+if (session_status() == PHP_SESSION_NONE) {
+    session_name('CGV_SESSION');
+    session_start();
+}
+
+// Include config với đường dẫn đúng từ root (Tickets.php trong folder pages)
+require_once __DIR__ . '/../admin/config/config.php';
 
 // Kiểm tra kết nối database
 if (!$conn) {
