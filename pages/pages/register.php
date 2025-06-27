@@ -44,4 +44,3 @@ if (isset($_SESSION['register_error'])) {
 
 
 
-<!-- JavaScript đã được tách ra file riêng: js/register.js -->

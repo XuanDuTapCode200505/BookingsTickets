@@ -1,12 +1,29 @@
 <?php
-session_start();
 require_once 'config/config.php';
 
 // Kiểm tra quyền admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    echo '<script>alert("Bạn không có quyền truy cập!"); window.location.href = "../index.php";</script>';
+    header('Location: ../index.php?quanly=dangnhap');
     exit();
 }
+
+// Kiểm tra session timeout (chỉ áp dụng nếu không có "remember me")
+if (!isset($_SESSION['remember_me']) || $_SESSION['remember_me'] !== true) {
+    $timeout_duration = 3600; // 1 giờ
+    
+    if (isset($_SESSION['last_activity'])) {
+        if (time() - $_SESSION['last_activity'] > $timeout_duration) {
+            // Session hết hạn, đăng xuất
+            session_unset();
+            session_destroy();
+            header('Location: login.php?timeout=1');
+            exit();
+        }
+    }
+}
+
+// Cập nhật last activity
+$_SESSION['last_activity'] = time();
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 ?>
@@ -17,376 +34,236 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CGV Admin - Quản trị hệ thống</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
-
-        .admin-header {
-            background-color: #e50914;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .admin-title {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .admin-user {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-container {
-            display: flex;
-            min-height: calc(100vh - 70px);
-        }
-
-        .admin-sidebar {
-            width: 250px;
-            background-color: #1a1a1a;
-            color: white;
-            padding: 0;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            border-bottom: 1px solid #333;
-        }
-
-        .sidebar-menu a {
-            display: block;
-            padding: 15px 20px;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background-color: #e50914;
-            border-left: 4px solid white;
-        }
-
-        .admin-content {
-            flex: 1;
-            padding: 30px;
-            background-color: #f9f9f9;
-        }
-
-        .content-header {
-            margin-bottom: 30px;
-        }
-
-        .content-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .breadcrumb {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #e50914;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-
-        .btn-primary {
-            background-color: #e50914;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #cc0812;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .btn-back {
-            background-color: #007bff;
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .recent-bookings {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .table th,
-        .table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .table tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-confirmed {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status-cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="admin-header">
-        <div class="admin-title">CGV Admin Panel</div>
-        <div class="admin-user">
-            <span>Xin chào, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
-            <a href="../pages/actions/logout_process.php" class="btn btn-secondary">Đăng xuất</a>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-left">
+            <h1><i class="fas fa-film"></i> CGV Admin</h1>
         </div>
-    </div>
+        <div class="header-right">
+            <div class="admin-info">
+                <i class="fas fa-user-shield"></i>
+            <span>Xin chào, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
+            </div>
+            <a href="../pages/actions/logout_process.php" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </a>
+        </div>
+    </header>
 
     <div class="admin-container">
-        <div class="admin-sidebar">
-            <ul class="sidebar-menu">
-                <li><a href="?page=dashboard" class="<?php echo $page == 'dashboard' ? 'active' : ''; ?>">📊 Dashboard</a></li>
-                <li><a href="?page=movies" class="<?php echo $page == 'movies' ? 'active' : ''; ?>">🎬 Quản lý Phim</a></li>
-                <li><a href="?page=theaters" class="<?php echo $page == 'theaters' ? 'active' : ''; ?>">🏢 Quản lý Rạp</a></li>
-                <li><a href="?page=showtimes" class="<?php echo $page == 'showtimes' ? 'active' : ''; ?>">⏰ Lịch Chiếu</a></li>
-                <li><a href="?page=bookings" class="<?php echo $page == 'bookings' ? 'active' : ''; ?>">🎫 Đặt Vé</a></li>
-                <li><a href="?page=users" class="<?php echo $page == 'users' ? 'active' : ''; ?>">👥 Người Dùng</a></li>
-                <li><a href="?page=reports" class="<?php echo $page == 'reports' ? 'active' : ''; ?>">📈 Báo Cáo</a></li>
-                <li><a href="../index.php" class="btn-back">🏠 Về Trang Chủ</a></li>
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item <?php echo $page == 'dashboard' ? 'active' : ''; ?>">
+                        <a href="?page=dashboard" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo $page == 'movies' ? 'active' : ''; ?>">
+                        <a href="?page=movies" class="nav-link">
+                            <i class="fas fa-film"></i>
+                            <span>Quản lý Phim</span>
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo $page == 'theaters' ? 'active' : ''; ?>">
+                        <a href="?page=theaters" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            <span>Quản lý Rạp</span>
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo $page == 'showtimes' ? 'active' : ''; ?>">
+                        <a href="?page=showtimes" class="nav-link">
+                            <i class="fas fa-clock"></i>
+                            <span>Lịch Chiếu</span>
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo $page == 'bookings' ? 'active' : ''; ?>">
+                        <a href="?page=bookings" class="nav-link">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Đặt Vé</span>
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo $page == 'users' ? 'active' : ''; ?>">
+                        <a href="?page=users" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Người Dùng</span>
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo $page == 'admins' ? 'active' : ''; ?>">
+                        <a href="?page=admins" class="nav-link">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Quản Trị Viên</span>
+                        </a>
+                    </li>
             </ul>
+                
+                <div class="sidebar-footer">
+                    <a href="../index.php" class="back-to-site">
+                        <i class="fas fa-home"></i>
+                        <span>Về trang chủ</span>
+                    </a>
         </div>
+            </nav>
+        </aside>
 
-        <div class="admin-content">
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="content-wrapper">
             <?php
             switch($page) {
                 case 'movies':
-                    include 'pages/movies.php';
+                        include 'pages/admin_movies.php';
                     break;
+                        
                 case 'theaters':
-                    include 'pages/theaters.php';
+                        include 'pages/admin_theaters.php';
                     break;
+                        
                 case 'showtimes':
-                    include 'pages/showtimes.php';
+                        include 'pages/admin_showtimes.php';
                     break;
+                        
                 case 'bookings':
-                    include 'pages/bookings.php';
+                        include 'pages/admin_bookings.php';
                     break;
+                        
                 case 'users':
-                    include 'pages/users.php';
+                        include 'pages/admin_users.php';
                     break;
-                case 'reports':
-                    include 'pages/reports.php';
+                        
+                    case 'admins':
+                        include 'pages/admin_admins.php';
                     break;
+                        
                 default:
                     // Dashboard
-                    echo '<div class="content-header">';
-                    echo '<h1 class="content-title">Dashboard</h1>';
-                    echo '<div class="breadcrumb">Trang chủ / Dashboard</div>';
+                        echo '<div class="page-header">';
+                        echo '<h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>';
+                        echo '<p class="page-subtitle">Tổng quan hệ thống quản lý CGV</p>';
                     echo '</div>';
                     
-                    // Thống kê
-                    $stats = [
-                        'total_movies' => 0,
-                        'total_theaters' => 0,
-                        'total_bookings' => 0,
-                        'total_revenue' => 0
-                    ];
-                    
-                    // Đếm số phim
-                    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM movies WHERE status = 'showing'");
-                    if ($result) {
-                        $stats['total_movies'] = mysqli_fetch_assoc($result)['count'];
-                    }
-                    
-                    // Đếm số rạp
-                    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM theaters");
-                    if ($result) {
-                        $stats['total_theaters'] = mysqli_fetch_assoc($result)['count'];
-                    }
-                    
-                    // Đếm số đặt vé
-                    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM bookings WHERE booking_status = 'confirmed'");
-                    if ($result) {
-                        $stats['total_bookings'] = mysqli_fetch_assoc($result)['count'];
-                    }
-                    
-                    // Tính tổng doanh thu
-                    $result = mysqli_query($conn, "SELECT SUM(total_amount) as revenue FROM bookings WHERE payment_status = 'paid'");
-                    if ($result) {
-                        $stats['total_revenue'] = mysqli_fetch_assoc($result)['revenue'] ?? 0;
-                    }
-                    
-                    echo '<div class="stats-grid">';
+                        // Stats Cards
+                        echo '<div class="stats-grid">';
+                        
+                        // Đếm phim
+                        $movies_result = $conn->query("SELECT COUNT(*) as count FROM movies WHERE status = 'showing'");
+                        $movies_count = $movies_result ? $movies_result->fetch_assoc()['count'] : 0;
+                        
                     echo '<div class="stat-card">';
-                    echo '<div class="stat-number">' . $stats['total_movies'] . '</div>';
-                    echo '<div class="stat-label">Phim đang chiếu</div>';
+                        echo '<div class="stat-icon"><i class="fas fa-film"></i></div>';
+                        echo '<div class="stat-details">';
+                        echo '<h3>' . $movies_count . '</h3>';
+                        echo '<p>Phim đang chiếu</p>';
+                        echo '</div>';
                     echo '</div>';
+                        
+                        // Đếm rạp
+                        $theaters_result = $conn->query("SELECT COUNT(*) as count FROM theaters");
+                        $theaters_count = $theaters_result ? $theaters_result->fetch_assoc()['count'] : 0;
                     
                     echo '<div class="stat-card">';
-                    echo '<div class="stat-number">' . $stats['total_theaters'] . '</div>';
-                    echo '<div class="stat-label">Rạp chiếu</div>';
+                        echo '<div class="stat-icon"><i class="fas fa-building"></i></div>';
+                        echo '<div class="stat-details">';
+                        echo '<h3>' . $theaters_count . '</h3>';
+                        echo '<p>Rạp chiếu</p>';
+                        echo '</div>';
                     echo '</div>';
+                        
+                        // Đếm người dùng
+                        $users_result = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'customer'");
+                        $users_count = $users_result ? $users_result->fetch_assoc()['count'] : 0;
                     
                     echo '<div class="stat-card">';
-                    echo '<div class="stat-number">' . $stats['total_bookings'] . '</div>';
-                    echo '<div class="stat-label">Vé đã bán</div>';
+                        echo '<div class="stat-icon"><i class="fas fa-users"></i></div>';
+                        echo '<div class="stat-details">';
+                        echo '<h3>' . $users_count . '</h3>';
+                        echo '<p>Người dùng</p>';
+                        echo '</div>';
                     echo '</div>';
+                        
+                        // Đếm đặt vé
+                        $bookings_result = $conn->query("SELECT COUNT(*) as count FROM bookings WHERE booking_status = 'confirmed'");
+                        $bookings_count = $bookings_result ? $bookings_result->fetch_assoc()['count'] : 0;
                     
                     echo '<div class="stat-card">';
-                    echo '<div class="stat-number">' . number_format($stats['total_revenue'], 0, ',', '.') . ' VNĐ</div>';
-                    echo '<div class="stat-label">Doanh thu</div>';
+                        echo '<div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>';
+                        echo '<div class="stat-details">';
+                        echo '<h3>' . $bookings_count . '</h3>';
+                        echo '<p>Vé đã bán</p>';
                     echo '</div>';
                     echo '</div>';
                     
-                    // Đặt vé gần đây
-                    echo '<div class="recent-bookings">';
-                    echo '<h3>Đặt vé gần đây</h3>';
-                    
-                    $recent_bookings_sql = "SELECT b.booking_code, b.total_amount, b.created_at, b.booking_status,
-                                                   u.name as user_name, m.title as movie_title
+                        echo '</div>';
+                        
+                        // Recent Activities
+                        echo '<div class="dashboard-section">';
+                        echo '<h3><i class="fas fa-clock"></i> Hoạt động gần đây</h3>';
+                        echo '<div class="activity-list">';
+                        
+                        $recent_sql = "SELECT 
+                                        b.booking_code, 
+                                        b.created_at, 
+                                        u.name as user_name, 
+                                        m.title as movie_title,
+                                        b.booking_status
                                             FROM bookings b
-                                            INNER JOIN users u ON b.user_id = u.id
-                                            INNER JOIN showtimes st ON b.showtime_id = st.id
-                                            INNER JOIN movies m ON st.movie_id = m.id
+                                       JOIN users u ON b.user_id = u.id
+                                       JOIN showtimes st ON b.showtime_id = st.id
+                                       JOIN movies m ON st.movie_id = m.id
                                             ORDER BY b.created_at DESC
                                             LIMIT 10";
-                    $recent_result = mysqli_query($conn, $recent_bookings_sql);
-                    
-                    if ($recent_result && mysqli_num_rows($recent_result) > 0) {
-                        echo '<table class="table">';
-                        echo '<thead>';
-                        echo '<tr>';
-                        echo '<th>Mã đặt vé</th>';
-                        echo '<th>Khách hàng</th>';
-                        echo '<th>Phim</th>';
-                        echo '<th>Tổng tiền</th>';
-                        echo '<th>Trạng thái</th>';
-                        echo '<th>Ngày đặt</th>';
-                        echo '</tr>';
-                        echo '</thead>';
-                        echo '<tbody>';
                         
-                        while($booking = mysqli_fetch_assoc($recent_result)) {
-                            echo '<tr>';
-                            echo '<td>' . htmlspecialchars($booking['booking_code']) . '</td>';
-                            echo '<td>' . htmlspecialchars($booking['user_name']) . '</td>';
-                            echo '<td>' . htmlspecialchars($booking['movie_title']) . '</td>';
-                            echo '<td>' . number_format($booking['total_amount'], 0, ',', '.') . ' VNĐ</td>';
-                            
-                            $status_class = 'status-' . $booking['booking_status'];
-                            $status_text = '';
-                            switch($booking['booking_status']) {
-                                case 'confirmed': $status_text = 'Đã xác nhận'; break;
-                                case 'pending': $status_text = 'Chờ xác nhận'; break;
-                                case 'cancelled': $status_text = 'Đã hủy'; break;
+                        $recent_result = $conn->query($recent_sql);
+                        
+                        if ($recent_result && $recent_result->num_rows > 0) {
+                            while ($activity = $recent_result->fetch_assoc()) {
+                                $status_class = '';
+                                $status_icon = '';
+                                switch ($activity['booking_status']) {
+                                    case 'confirmed':
+                                        $status_class = 'success';
+                                        $status_icon = 'check-circle';
+                                        break;
+                                    case 'pending':
+                                        $status_class = 'warning';
+                                        $status_icon = 'clock';
+                                        break;
+                                    case 'cancelled':
+                                        $status_class = 'danger';
+                                        $status_icon = 'times-circle';
+                                        break;
+                                }
+                                
+                                echo '<div class="activity-item">';
+                                echo '<div class="activity-icon ' . $status_class . '">';
+                                echo '<i class="fas fa-' . $status_icon . '"></i>';
+                                echo '</div>';
+                                echo '<div class="activity-content">';
+                                echo '<p><strong>' . htmlspecialchars($activity['user_name']) . '</strong> đặt vé phim <strong>' . htmlspecialchars($activity['movie_title']) . '</strong></p>';
+                                echo '<small>' . date('d/m/Y H:i', strtotime($activity['created_at'])) . ' - Mã: ' . htmlspecialchars($activity['booking_code']) . '</small>';
+                                echo '</div>';
+                                echo '</div>';
                             }
-                            
-                            echo '<td><span class="status-badge ' . $status_class . '">' . $status_text . '</span></td>';
-                            echo '<td>' . date('d/m/Y H:i', strtotime($booking['created_at'])) . '</td>';
-                            echo '</tr>';
+                        } else {
+                            echo '<p class="no-data">Chưa có hoạt động nào gần đây.</p>';
                         }
                         
-                        echo '</tbody>';
-                        echo '</table>';
-                    } else {
-                        echo '<p>Chưa có đặt vé nào.</p>';
-                    }
-                    
+                        echo '</div>';
                     echo '</div>';
                     
                     break;
             }
             ?>
         </div>
+        </main>
     </div>
+
+    <script src="js/admin.js"></script>
 </body>
 </html> 

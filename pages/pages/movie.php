@@ -59,5 +59,3 @@
         <div id="movieDetails"></div>
     </div>
 </div>
-
-<!-- CSS và JavaScript đã được tách ra file riêng: css/movie.css và js/movie.js -->
