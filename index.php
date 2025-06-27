@@ -1,4 +1,7 @@
-<?php session_start(); ?>
+<?php 
+session_name('CGV_SESSION');
+session_start(); 
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

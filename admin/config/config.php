@@ -42,7 +42,8 @@ if (session_status() == PHP_SESSION_NONE) {
         $timeout_duration = 600; // 10 phút cho admin
     }
     
-    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
+    // Chỉ kiểm tra timeout nếu đã có session user_id (đã đăng nhập)
+    if (isset($_SESSION['user_id']) && isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
         // Session hết hạn, đăng xuất
         session_unset();
         session_destroy();
@@ -54,8 +55,10 @@ if (session_status() == PHP_SESSION_NONE) {
             exit();
         }
     } else {
-        // Chỉ cập nhật last_activity nếu session còn hợp lệ
-        $_SESSION['last_activity'] = time();
+        // Cập nhật last_activity cho session hợp lệ hoặc session mới
+        if (isset($_SESSION['user_id'])) {
+            $_SESSION['last_activity'] = time();
+        }
     }
 }
 

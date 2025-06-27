@@ -1,4 +1,5 @@
 <?php
+session_name('CGV_SESSION');
 session_start();
 require_once '../../admin/config/config.php';
 

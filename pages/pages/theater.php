@@ -1,6 +1,7 @@
 <?php 
 // Đảm bảo session được khởi tạo
 if (session_status() == PHP_SESSION_NONE) {
+    session_name('CGV_SESSION');
     session_start();
 }
 require_once 'admin/config/config.php'; 

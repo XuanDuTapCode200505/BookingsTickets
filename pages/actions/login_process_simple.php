@@ -1,4 +1,7 @@
 <?php
+// Đảm bảo không có output trước khi redirect
+ob_start();
+session_name('CGV_SESSION');
 session_start();
 require_once '../../admin/config/config.php';
 
@@ -16,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!$result) {
         error_log("Query failed: " . mysqli_error($conn));
         $_SESSION['login_error'] = "Lỗi hệ thống!";
+        ob_end_clean();
         header("Location: ../../index.php?quanly=dangnhap");
         exit();
     }
@@ -41,6 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['email'] = $row['email'];
             $_SESSION['name'] = $row['name'];
             $_SESSION['role'] = $row['role'];
+            $_SESSION['last_activity'] = time();
             
             error_log("Login successful for user: " . $row['email'] . " (ID: " . $row['id'] . ", Role: " . $row['role'] . ")");
             error_log("Session data set - user_id: " . $_SESSION['user_id'] . ", name: " . $_SESSION['name'] . ", role: " . $_SESSION['role']);
@@ -49,11 +54,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($row['role'] == 'admin') {
                 error_log("Admin login detected - redirecting to admin panel");
                 $_SESSION['login_success'] = "Đăng nhập admin thành công! Chào mừng đến với Admin Panel.";
+                
+                // Xóa output buffer và redirect
+                ob_end_clean();
                 header("Location: ../../admin/index.php");
+                exit();
             } else {
+                ob_end_clean();
                 header("Location: ../../index.php");
+                exit();
             }
-            exit();
         } else {
             error_log("Invalid password for user: " . $email);
             $_SESSION['login_error'] = "Mật khẩu không đúng!";
@@ -63,11 +73,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['login_error'] = "Email không tồn tại!";
     }
     
+    ob_end_clean();
     header("Location: ../../index.php?quanly=dangnhap");
     exit();
 }
 
 // Nếu không phải POST
+ob_end_clean();
 header("Location: ../../index.php?quanly=dangnhap");
 exit();
 ?> 
