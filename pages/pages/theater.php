@@ -5,6 +5,76 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 require_once 'admin/config/config.php'; 
+
+// AJAX handler để lấy theaters theo city
+if (isset($_GET['action']) && $_GET['action'] == 'get_theaters') {
+    $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : 0;
+    
+    if ($city_id > 0) {
+        $sql = "SELECT t.*, c.name as city_name 
+                FROM theaters t 
+                LEFT JOIN cities c ON t.city_id = c.id 
+                WHERE t.city_id = ? AND t.status = 'active' 
+                ORDER BY t.name";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $city_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $theaters = [];
+        while ($theater = $result->fetch_assoc()) {
+            $theaters[] = $theater;
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode($theaters);
+        exit;
+    }
+    
+    header('Content-Type: application/json');
+    echo json_encode([]);
+    exit;
+}
+
+// Lấy danh sách tất cả cities có theaters
+$cities_sql = "SELECT c.*, COUNT(t.id) as theater_count 
+               FROM cities c 
+               LEFT JOIN theaters t ON c.id = t.city_id AND t.status = 'active'
+               WHERE c.status = 'active' 
+               GROUP BY c.id, c.code, c.name, c.status, c.display_order 
+               HAVING theater_count > 0 
+               ORDER BY c.display_order";
+$cities_result = mysqli_query($conn, $cities_sql);
+
+// Lấy city đầu tiên để hiển thị mặc định
+$first_city = null;
+$cities = [];
+if ($cities_result && mysqli_num_rows($cities_result) > 0) {
+    while ($city = mysqli_fetch_assoc($cities_result)) {
+        $cities[] = $city;
+        if (!$first_city) {
+            $first_city = $city;
+        }
+    }
+}
+
+// Lấy theaters của city đầu tiên
+$default_theaters = [];
+if ($first_city) {
+    $theaters_sql = "SELECT t.*, c.name as city_name 
+                     FROM theaters t 
+                     LEFT JOIN cities c ON t.city_id = c.id 
+                     WHERE t.city_id = ? AND t.status = 'active' 
+                     ORDER BY t.name";
+    $stmt = $conn->prepare($theaters_sql);
+    $stmt->bind_param("i", $first_city['id']);
+    $stmt->execute();
+    $theaters_result = $stmt->get_result();
+    
+    while ($theater = $theaters_result->fetch_assoc()) {
+        $default_theaters[] = $theater;
+    }
+}
 ?>
 
 <!-- CSS và JavaScript đã được tách ra file riêng: css/theater.css và js/theater.js -->
@@ -12,247 +82,147 @@ require_once 'admin/config/config.php';
 <div class="cgv-container">
     <div class="cgv-title">CGV CINEMAS</div>
     <hr class="cgv-divider">
+    
+    <!-- Loading indicator -->
+    <div id="loading-indicator" style="display: none; text-align: center; color: #e71a0f; margin: 20px 0;">
+        <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #e71a0f; border-top: 3px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <span style="margin-left: 10px;">Đang tải danh sách rạp...</span>
+    </div>
+    
+    <!-- Cities Grid -->
     <div class="cgv-cities">
-        <div class="cgv-city-col">
-            <ul>
-                <li onclick="showTheaters('hcm')" id="city-hcm" class="active">Hồ Chí Minh</li>
-                <li onclick="showTheaters('hp')" id="city-hp">Hải Phòng</li>
-                <li onclick="showTheaters('dlk')" id="city-dlk">Đắk Lắk</li>
-                <li onclick="showTheaters('hg')" id="city-hg">Hậu Giang</li>
-                <li onclick="showTheaters('hy')" id="city-hy">Hưng Yên</li>
-                <li onclick="showTheaters('pt')" id="city-pt">Phú Thọ</li>
-                <li onclick="showTheaters('tn')" id="city-tn">Thái Nguyên</li>
-            </ul>
-        </div>
-        <div class="cgv-city-col">
-            <ul>
-                <li onclick="showTheaters('hn')" id="city-hn">Hà Nội</li>
-                <li onclick="showTheaters('qn')" id="city-qn">Quảng Ninh</li>
-                <li onclick="showTheaters('tv')" id="city-tv">Trà Vinh</li>
-                <li onclick="showTheaters('ht')" id="city-ht">Hà Tĩnh</li>
-                <li onclick="showTheaters('kh')" id="city-kh">Khánh Hòa</li>
-                <li onclick="showTheaters('qng')" id="city-qng">Quảng Ngãi</li>
-                <li onclick="showTheaters('tg')" id="city-tg">Tiền Giang</li>
-            </ul>
-        </div>
-        <div class="cgv-city-col">
-            <ul>
-                <li onclick="showTheaters('dn')" id="city-dn">Đà Nẵng</li>
-                <li onclick="showTheaters('brvt')" id="city-brvt">Bà Rịa-Vũng Tàu</li>
-                <li onclick="showTheaters('yb')" id="city-yb">Yên Bái</li>
-                <li onclick="showTheaters('py')" id="city-py">Phú Yên</li>
-                <li onclick="showTheaters('kt')" id="city-kt">Kon Tum</li>
-                <li onclick="showTheaters('st')" id="city-st">Sóc Trăng</li>
-            </ul>
-        </div>
-        <div class="cgv-city-col">
-            <ul>
-                <li onclick="showTheaters('ct')" id="city-ct">Cần Thơ</li>
-                <li onclick="showTheaters('bd')" id="city-bd">Bình Định</li>
-                <li onclick="showTheaters('vl')" id="city-vl">Vĩnh Long</li>
-                <li onclick="showTheaters('dt')" id="city-dt">Đồng Tháp</li>
-                <li onclick="showTheaters('ls')" id="city-ls">Lạng Sơn</li>
-                <li onclick="showTheaters('sl')" id="city-sl">Sơn La</li>
-            </ul>
-        </div>
-        <div class="cgv-city-col">
-            <ul>
-                <li onclick="showTheaters('dnai')" id="city-dnai">Đồng Nai</li>
-                <li onclick="showTheaters('bdg')" id="city-bdg">Bình Dương</li>
-                <li onclick="showTheaters('kg')" id="city-kg">Kiên Giang</li>
-                <li onclick="showTheaters('bl')" id="city-bl">Bạc Liêu</li>
-                <li onclick="showTheaters('na')" id="city-na">Nghệ An</li>
-                <li onclick="showTheaters('tnh')" id="city-tnh">Tây Ninh</li>
-            </ul>
-        </div>
+        <?php
+        // Chia cities thành 5 cột
+        $total_cities = count($cities);
+        $cities_per_col = ceil($total_cities / 5);
+        
+        for ($col = 0; $col < 5; $col++) {
+            echo '<div class="cgv-city-col"><ul>';
+            
+            $start_index = $col * $cities_per_col;
+            $end_index = min($start_index + $cities_per_col, $total_cities);
+            
+            for ($i = $start_index; $i < $end_index; $i++) {
+                if (isset($cities[$i])) {
+                    $city = $cities[$i];
+                    $active_class = ($city['id'] == $first_city['id']) ? 'active' : '';
+                    echo '<li onclick="showTheaters(' . $city['id'] . ')" 
+                             id="city-' . $city['id'] . '" 
+                             class="' . $active_class . '" 
+                             data-city-code="' . htmlspecialchars($city['code']) . '">';
+                    echo htmlspecialchars($city['name']);
+                    echo '<small style="display: block; color: #999; font-size: 11px;">(' . $city['theater_count'] . ' rạp)</small>';
+                    echo '</li>';
+                }
+            }
+            
+            echo '</ul></div>';
+        }
+        ?>
     </div>
+    
     <hr class="cgv-divider">
-    <div id="theaters-hcm" class="cgv-theaters active">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Hùng Vương Plaza</li>
-                <li>CGV Vivo City</li>
-                <li>CGV Menas Mall (CGV CT Plaza)</li>
-                <li>CGV Hoàng Văn Thụ</li>
-                <li>CGV Vincom Center Landmark 81</li>
-                <li>CGV Vincom Mega Mall Grand Park</li>
-            </ul>
+    
+    <!-- Theaters Container -->
+    <div id="theaters-container" class="cgv-theaters active">
+        <div id="theaters-content">
+            <?php if (!empty($default_theaters)): ?>
+                <div class="theaters-header">
+                    <h3 style="color: #e71a0f; text-align: center; margin-bottom: 20px;">
+                        📍 DANH SÁCH RẬP CGV - <?php echo strtoupper(htmlspecialchars($first_city['name'])); ?>
+                    </h3>
+                </div>
+                <div class="theaters-grid">
+                    <?php
+                    // Tạo một theater card cho mỗi theater
+                    foreach ($default_theaters as $theater) {
+                        $phone = $theater['phone'] ?: 'Chưa cập nhật';
+                        echo '<div class="cgv-theater-list">';
+                        echo '<ul>';
+                        echo '<li onclick="showTheaterInfo(\'' . addslashes($theater['name']) . '\', \'' . addslashes($theater['location']) . '\', \'' . addslashes($phone) . '\')">';
+                        echo '<strong>' . htmlspecialchars($theater['name']) . '</strong>';
+                        echo '<br><small style="color: #aaa;">' . htmlspecialchars($theater['location']) . '</small>';
+                        echo '</li>';
+                        echo '</ul>';
+                        echo '</div>';
+                    }
+                    ?>
+                </div>
+            <?php else: ?>
+                <div class="empty-state">
+                    <div>🏢</div>
+                    <h3>Chưa có rạp nào</h3>
+                    <p>Khu vực này hiện chưa có rạp CGV.</p>
+                </div>
+            <?php endif; ?>
         </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Crescent Mall</li>
-                <li>CGV Pearl Plaza</li>
-                <li>CGV Pandora City</li>
-                <li>CGV Aeon Bình Tân</li>
-                <li>CGV Satra Củ Chi</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Thảo Điền Pearl</li>
-                <li>CGV Liberty Citypoint</li>
-                <li>CGV Aeon Tân Phú</li>
-                <li>CGV Saigonres Nguyễn Xí</li>
-                <li>CGV Gigamall Thủ Đức</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vincom Thủ Đức</li>
-                <li>CGV Vincom Đồng Khởi</li>
-                <li>CGV Vincom Gò Vấp</li>
-                <li>CGV Sư Vạn Hạnh</li>
-                <li>CGV Lý Chính Thắng</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Hà Nội -->
-    <div id="theaters-hn" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vincom Center Bà Triệu</li>
-                <li>CGV Hồ Gươm Plaza</li>
-                <li>CGV Aeon Long Biên</li>
-                <li>CGV Vincom Nguyễn Chí Thanh</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Indochina Plaza Hà Nội</li>
-                <li>CGV Rice City</li>
-                <li>CGV Hà Nội Centerpoint</li>
-                <li>CGV Vincom Royal City</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vincom Times City</li>
-                <li>CGV Vincom Long Biên</li>
-                <li>CGV Mac Plaza (Machinco)</li>
-                <li>CGV Trương Định Plaza</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Tràng Tiền Plaza</li>
-                <li>CGV Sun Grand Thụy Khuê</li>
-                <li>CGV Sun Grand Lương Yên</li>
-                <li>CGV Vincom Bắc Từ Liêm</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vincom Metropolis Liễu Giai</li>
-                <li>CGV Xuân Diệu</li>
-                <li>CGV Vincom Sky Lake Phạm Hùng</li>
-                <li>CGV Vincom Trần Duy Hưng</li>
-            </ul>
-        </div>
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Aeon Hà Đông</li>
-                <li>CGV Vincom Ocean Park</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Đà Nẵng -->
-    <div id="theaters-dn" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vĩnh Trung Plaza</li>
-                <li>CGV Vincom Đà Nẵng</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Cần Thơ -->
-    <div id="theaters-ct" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Sense City</li>
-                <li>CGV Vincom Xuân Khánh</li>
-                <li>CGV Vincom Hùng Vương</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Đồng Nai -->
-    <div id="theaters-dnai" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Coopmart Biên Hòa</li>
-                <li>CGV Big C Đồng Nai</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Hải Phòng -->
-    <div id="theaters-hp" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vincom Hải Phòng</li>
-                <li>CGV Aeon Mall Hải Phòng</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Quảng Ninh -->
-    <div id="theaters-qn" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Vincom Hạ Long</li>
-                <li>CGV Vincom Móng Cái</li>
-                <li>CGV Vincom Cẩm Phả</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Bà Rịa-Vũng Tàu -->
-    <div id="theaters-brvt" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Lam Sơn Square</li>
-                <li>CGV Lapen Center Vũng Tàu</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Bình Định -->
-    <div id="theaters-bd" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Kim Cúc Plaza</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Bình Dương -->
-    <div id="theaters-bdg" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Bình Dương Square</li>
-                <li>CGV Aeon Canary</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Đắk Lắk -->
-    <div id="theaters-dlk" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Buôn Mê Thuột</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Trà  -->
-    <!-- Hậu Giang -->
-    <div id="theaters-hg" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Hậu Giang</li>
-            </ul>
-        </div>
-    </div>
-    <!-- Hưng Yên -->
-    <div id="theaters-hy" class="cgv-theaters">
-        <div class="cgv-theater-list">
-            <ul>
-                <li>CGV Hưng Yên</li>
-            </ul>
+        
+        <div class="footer-note">
+            Click vào tên rạp để xem thông tin chi tiết
         </div>
     </div>
 </div>
 
-<!-- CSS và JavaScript đã được tách ra file riêng -->
+<!-- Theater Info Modal -->
+<div id="theater-modal" style="display: none;">
+    <div>
+        <div class="close-btn" onclick="closeTheaterModal()">✕</div>
+        
+        <div id="theater-modal-content">
+            <!-- Content will be inserted here -->
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="closeTheaterModal()" style="background: #e71a0f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                Đóng
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Loading animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Theater grid responsive */
+.theaters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.theaters-header {
+    grid-column: 1 / -1;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .theaters-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .cgv-cities {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #theater-modal > div {
+        margin: 20px auto;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cgv-cities {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Dữ liệu cities để JavaScript sử dụng
+window.citiesData = <?php echo json_encode($cities); ?>;
+</script>

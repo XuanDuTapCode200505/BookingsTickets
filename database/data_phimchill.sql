@@ -249,6 +249,187 @@ INSERT INTO theaters (name, location, city_id, phone, status, total_screens) VAL
 ('CGV Vincom Nha Trang', '50 Trần Phú, TP. Nha Trang', 32, '0258 3836 666', 'active', 4),
 ('Lotte Cinema Nha Trang', '2C Trần Quang Khải, TP. Nha Trang', 32, '0258 3836 777', 'active', 5);
 
+-- THÊM RẠP CHIẾU CHO 55 TỈNH THÀNH CÒN LẠI (city_id 6-63)
+INSERT INTO theaters (name, location, city_id, phone, status, total_screens) VALUES 
+-- An Giang (city_id = 6)
+('CGV Long Xuyên', '15A Trưng Nữ Vương, TP. Long Xuyên', 6, '0296 3841 111', 'active', 4),
+('Galaxy An Giang', '123 Nguyễn Huệ, TP. Long Xuyên', 6, '0296 3841 222', 'active', 3),
+
+-- Bà Rịa - Vũng Tàu (city_id = 7)
+('CGV Vũng Tàu', '02 Lê Hồng Phong, TP. Vũng Tàu', 7, '0254 3856 111', 'active', 5),
+('Lotte Cinema Vũng Tàu', '456 Trường Chinh, TP. Vũng Tàu', 7, '0254 3856 222', 'active', 4),
+
+-- Bắc Kạn (city_id = 8)
+('Rạp Chiếu Phim Bắc Kạn', '78 Ngô Quyền, TP. Bắc Kạn', 8, '0209 3822 111', 'active', 2),
+
+-- Bắc Giang (city_id = 9)
+('CGV Bắc Giang', '22 Hoàng Văn Thụ, TP. Bắc Giang', 9, '0204 3822 333', 'active', 3),
+
+-- Bạc Liêu (city_id = 10)
+('Galaxy Bạc Liêu', '56 Trần Phú, TP. Bạc Liêu', 10, '0291 3822 444', 'active', 3),
+
+-- Bắc Ninh (city_id = 11)  
+('CGV Vincom Bắc Ninh', '01 Đại lộ Thăng Long, TP. Bắc Ninh', 11, '0222 3822 555', 'active', 5),
+('Lotte Cinema Bắc Ninh', '789 Võ Nguyên Giáp, TP. Bắc Ninh', 11, '0222 3822 666', 'active', 4),
+
+-- Bến Tre (city_id = 12)
+('Rạp Chiếu Phim Bến Tre', '34 Đồng Khởi, TP. Bến Tre', 12, '0275 3822 777', 'active', 2),
+
+-- Bình Định (city_id = 13)
+('CGV Quy Nhon', '12 Trần Hưng Đạo, TP. Quy Nhon', 13, '0256 3822 888', 'active', 4),
+('Galaxy Bình Định', '67 An Dương Vương, TP. Quy Nhon', 13, '0256 3822 999', 'active', 3),
+
+-- Bình Phước (city_id = 15)
+('CGV Đồng Xoài', '89 Phú Riềng Đỏ, TP. Đồng Xoài', 15, '0271 3823 111', 'active', 3),
+
+-- Bình Thuận (city_id = 16)
+('CGV Phan Thiết', '45 Nguyễn Thái Học, TP. Phan Thiết', 16, '0252 3823 222', 'active', 4),
+('Lotte Cinema Phan Thiết', '78 Trần Hưng Đạo, TP. Phan Thiết', 16, '0252 3823 333', 'active', 3),
+
+-- Cà Mau (city_id = 17)
+('Galaxy Cà Mau', '23 Phạm Ngũ Lão, TP. Cà Mau', 17, '0290 3823 444', 'active', 2),
+
+-- Cao Bằng (city_id = 18)
+('Rạp Chiếu Phim Cao Bằng', '56 Võ Nguyên Giáp, TP. Cao Bằng', 18, '0206 3823 555', 'active', 2),
+
+-- Đắk Lắk (city_id = 19)
+('CGV Buôn Ma Thuột', '01 Y Jút, TP. Buôn Ma Thuột', 19, '0262 3823 666', 'active', 4),
+('Galaxy Đắk Lắk', '123 Trường Chinh, TP. Buôn Ma Thuột', 19, '0262 3823 777', 'active', 3),
+
+-- Đắk Nông (city_id = 20)
+('Rạp Chiếu Phim Gia Nghĩa', '45 Nguyễn Chí Thanh, TP. Gia Nghĩa', 20, '0261 3823 888', 'active', 2),
+
+-- Điện Biên (city_id = 21)
+('Galaxy Điện Biên', '78 Võ Nguyên Giáp, TP. Điện Biên Phủ', 21, '0215 3823 999', 'active', 2),
+
+-- Đồng Tháp (city_id = 23)
+('CGV Cao Lãnh', '12 Nguyễn Huệ, TP. Cao Lãnh', 23, '0277 3824 111', 'active', 3),
+
+-- Gia Lai (city_id = 24)
+('CGV Pleiku', '34 Hùng Vương, TP. Pleiku', 24, '0269 3824 222', 'active', 4),
+('Galaxy Gia Lai', '67 Lê Duẩn, TP. Pleiku', 24, '0269 3824 333', 'active', 3),
+
+-- Hà Giang (city_id = 25)
+('Rạp Chiếu Phim Hà Giang', '89 Nguyễn Trãi, TP. Hà Giang', 25, '0219 3824 444', 'active', 2),
+
+-- Hà Nam (city_id = 26)
+('Galaxy Phủ Lý', '23 Trần Phú, TP. Phủ Lý', 26, '0226 3824 555', 'active', 3),
+
+-- Hà Tĩnh (city_id = 27)
+('CGV Hà Tĩnh', '45 Trần Phú, TP. Hà Tĩnh', 27, '0239 3824 666', 'active', 3),
+
+-- Hải Dương (city_id = 28)
+('CGV Hải Dương', '67 Nguyễn Lương Bằng, TP. Hải Dương', 28, '0220 3824 777', 'active', 4),
+
+-- Hậu Giang (city_id = 29)
+('Galaxy Vị Thanh', '89 Nguyễn Thái Học, TP. Vị Thanh', 29, '0293 3824 888', 'active', 2),
+
+-- Hòa Bình (city_id = 30)
+('Rạp Chiếu Phim Hòa Bình', '12 Cù Chính Lan, TP. Hòa Bình', 30, '0218 3824 999', 'active', 2),
+
+-- Hưng Yên (city_id = 31)
+('CGV Hưng Yên', '34 Lê Duẩn, TP. Hưng Yên', 31, '0221 3825 111', 'active', 3),
+
+-- Kiên Giang (city_id = 33)
+('CGV Rạch Giá', '56 Lê Lợi, TP. Rạch Giá', 33, '0297 3825 222', 'active', 4),
+('Galaxy Kiên Giang', '78 Nguyễn Trung Trực, TP. Rạch Giá', 33, '0297 3825 333', 'active', 3),
+
+-- Kon Tum (city_id = 34)
+('Galaxy Kon Tum', '23 Phan Đình Phùng, TP. Kon Tum', 34, '0260 3825 444', 'active', 2),
+
+-- Lai Châu (city_id = 35)
+('Rạp Chiếu Phim Lai Châu', '45 Trần Phú, TP. Lai Châu', 35, '0213 3825 555', 'active', 2),
+
+-- Lâm Đồng (city_id = 36)
+('CGV Đà Lạt', '67 Nguyễn Thi Minh Khai, TP. Đà Lạt', 36, '0263 3825 666', 'active', 5),
+('Galaxy Lâm Đồng', '89 Trần Phú, TP. Đà Lạt', 36, '0263 3825 777', 'active', 4),
+
+-- Lạng Sơn (city_id = 37)
+('Galaxy Lạng Sơn', '12 Lê Duẩn, TP. Lạng Sơn', 37, '0205 3825 888', 'active', 2),
+
+-- Lào Cai (city_id = 38)
+('CGV Lào Cai', '34 Trần Hưng Đạo, TP. Lào Cai', 38, '0214 3825 999', 'active', 3),
+
+-- Long An (city_id = 39)
+('CGV Tân An', '56 Hùng Vương, TP. Tân An', 39, '0272 3826 111', 'active', 3),
+
+-- Nam Định (city_id = 40)
+('CGV Nam Định', '78 Trường Chinh, TP. Nam Định', 40, '0228 3826 222', 'active', 4),
+
+-- Nghệ An (city_id = 41)
+('CGV Vinh', '23 Quang Trung, TP. Vinh', 41, '0238 3826 333', 'active', 5),
+('Galaxy Nghệ An', '45 Lê Lợi, TP. Vinh', 41, '0238 3826 444', 'active', 4),
+
+-- Ninh Bình (city_id = 42)
+('Galaxy Ninh Bình', '67 Trần Hưng Đạo, TP. Ninh Bình', 42, '0229 3826 555', 'active', 3),
+
+-- Ninh Thuận (city_id = 43)
+('CGV Phan Rang', '89 Thống Nhất, TP. Phan Rang-Tháp Chàm', 43, '0259 3826 666', 'active', 3),
+
+-- Phú Thọ (city_id = 44)
+('Galaxy Việt Trì', '12 Hùng Vương, TP. Việt Trì', 44, '0210 3826 777', 'active', 3),
+
+-- Phú Yên (city_id = 45)
+('CGV Tuy Hòa', '34 Lê Thành Phương, TP. Tuy Hòa', 45, '0257 3826 888', 'active', 3),
+
+-- Quảng Bình (city_id = 46)
+('Galaxy Đồng Hới', '56 Quách Xuân Kỳ, TP. Đồng Hới', 46, '0232 3826 999', 'active', 3),
+
+-- Quảng Nam (city_id = 47)
+('CGV Tam Kỳ', '78 Phan Bội Châu, TP. Tam Kỳ', 47, '0235 3827 111', 'active', 3),
+('Galaxy Hội An', '23 Lê Lợi, TP. Hội An', 47, '0235 3827 222', 'active', 2),
+
+-- Quảng Ngãi (city_id = 48)
+('CGV Quảng Ngãi', '45 Quang Trung, TP. Quảng Ngãi', 48, '0255 3827 333', 'active', 3),
+
+-- Quảng Ninh (city_id = 49)
+('CGV Hạ Long', '67 Hạ Long, TP. Hạ Long', 49, '0203 3827 444', 'active', 5),
+('Galaxy Quảng Ninh', '89 Bãi Cháy, TP. Hạ Long', 49, '0203 3827 555', 'active', 4),
+
+-- Quảng Trị (city_id = 50)
+('Galaxy Đông Hà', '12 Lê Duẩn, TP. Đông Hà', 50, '0233 3827 666', 'active', 2),
+
+-- Sóc Trăng (city_id = 51)
+('CGV Sóc Trăng', '34 Trần Hưng Đạo, TP. Sóc Trăng', 51, '0299 3827 777', 'active', 3),
+
+-- Sơn La (city_id = 52)
+('Galaxy Sơn La', '56 Tô Hiến Thành, TP. Sơn La', 52, '0212 3827 888', 'active', 2),
+
+-- Tây Ninh (city_id = 53)
+('CGV Tây Ninh', '78 Cách Mạng Tháng 8, TP. Tây Ninh', 53, '0276 3827 999', 'active', 3),
+
+-- Thái Bình (city_id = 54)
+('Galaxy Thái Bình', '23 Lý Bôn, TP. Thái Bình', 54, '0227 3828 111', 'active', 3),
+
+-- Thái Nguyên (city_id = 55)
+('CGV Thái Nguyên', '45 Hoàng Văn Thụ, TP. Thái Nguyên', 55, '0208 3828 222', 'active', 4),
+
+-- Thanh Hóa (city_id = 56)
+('CGV Thanh Hóa', '67 Quang Trung, TP. Thanh Hóa', 56, '0237 3828 333', 'active', 4),
+('Galaxy Thanh Hóa', '89 Phan Chu Trinh, TP. Thanh Hóa', 56, '0237 3828 444', 'active', 3),
+
+-- Thừa Thiên Huế (city_id = 57)
+('CGV Huế', '12 Lê Lợi, TP. Huế', 57, '0234 3828 555', 'active', 5),
+('Galaxy Huế', '34 Nguyễn Huệ, TP. Huế', 57, '0234 3828 666', 'active', 4),
+
+-- Tiền Giang (city_id = 58)
+('CGV Mỹ Tho', '56 Trưng Trắc, TP. Mỹ Tho', 58, '0273 3828 777', 'active', 3),
+
+-- Trà Vinh (city_id = 59)
+('Galaxy Trà Vinh', '78 Nguyễn Đáng, TP. Trà Vinh', 59, '0294 3828 888', 'active', 2),
+
+-- Tuyên Quang (city_id = 60)
+('Rạp Chiếu Phim Tuyên Quang', '23 Tân Trào, TP. Tuyên Quang', 60, '0207 3828 999', 'active', 2),
+
+-- Vĩnh Long (city_id = 61)
+('CGV Vĩnh Long', '45 Phạm Thái Bường, TP. Vĩnh Long', 61, '0270 3829 111', 'active', 3),
+
+-- Vĩnh Phúc (city_id = 62)
+('Galaxy Vĩnh Yên', '67 Mê Linh, TP. Vĩnh Yên', 62, '0211 3829 222', 'active', 3),
+
+-- Yên Bái (city_id = 63)
+('CGV Yên Bái', '89 Điện Biên, TP. Yên Bái', 63, '0216 3829 333', 'active', 2);
+
 -- Movies
 INSERT INTO movies (title, description, duration, genre, release_date, poster_url, status, rating) VALUES 
 ('Lật Mặt 8', 'Phim hành động Việt Nam đầy kịch tính với những pha action mãn nhãn', 120, 'Hành động, Hài', '2024-01-15', 'img/Phim/latmat8.jpg', 'showing', 8.5),
@@ -417,5 +598,12 @@ INSERT INTO showtimes (movie_id, screen_id, show_date, show_time, price, availab
 
 -- Bật lại foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- Thông báo hoàn thành
+SELECT 'Database đã được cập nhật với rạp chiếu cho tất cả 63 tỉnh thành!' as 'Trạng thái';
+SELECT COUNT(*) as 'Tổng số rạp' FROM theaters;
+SELECT COUNT(*) as 'Tổng số tỉnh thành' FROM cities;
+SELECT COUNT(*) as 'Tổng số phòng chiếu' FROM screens;
+SELECT COUNT(*) as 'Tổng số lịch chiếu' FROM showtimes;
 
 

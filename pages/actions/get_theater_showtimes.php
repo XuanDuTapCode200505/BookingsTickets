@@ -1,5 +1,46 @@
 <?php
+// Đảm bảo session được khởi tạo
+if (session_status() == PHP_SESSION_NONE) {
+    session_name('CGV_SESSION');
+    session_start();
+}
+
 require_once '../../admin/config/config.php';
+
+// Xử lý AJAX request để lấy theaters theo city
+if (isset($_GET['action']) && $_GET['action'] == 'get_theaters') {
+    $city_id = isset($_GET['city_id']) ? (int)$_GET['city_id'] : 0;
+    
+    if ($city_id > 0) {
+        $sql = "SELECT t.*, c.name as city_name 
+                FROM theaters t 
+                LEFT JOIN cities c ON t.city_id = c.id 
+                WHERE t.city_id = ? AND t.status = 'active' 
+                ORDER BY t.name";
+        $stmt = $conn->prepare($sql);
+        
+        if ($stmt) {
+            $stmt->bind_param("i", $city_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            $theaters = [];
+            while ($theater = $result->fetch_assoc()) {
+                $theaters[] = $theater;
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode($theaters);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Database error']);
+        }
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode([]);
+    }
+    exit;
+}
 
 header('Content-Type: application/json');
 
