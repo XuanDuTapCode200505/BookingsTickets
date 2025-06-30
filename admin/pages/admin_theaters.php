@@ -6,15 +6,15 @@ $theater_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($action == 'add' || $action == 'edit') {
         $name = trim($_POST['name']);
-        $address = trim($_POST['address']);
-        $phone = trim($_POST['phone']);
-        $description = trim($_POST['description']);
-        $status = $_POST['status'];
+        $location = trim($_POST['address']); // Đổi từ address thành location
+        $phone = trim($_POST['phone']) ?: '';
+        $city_id = isset($_POST['city_id']) ? (int)$_POST['city_id'] : 1; // Mặc định city_id = 1 (HCM)
+        $status = $_POST['status'] ?: 'active';
         
         if ($action == 'add') {
-            $sql = "INSERT INTO theaters (name, address, phone, description, status) VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO theaters (name, location, city_id, phone, status) VALUES (?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssss", $name, $address, $phone, $description, $status);
+            $stmt->bind_param("ssiss", $name, $location, $city_id, $phone, $status);
             
             if ($stmt->execute()) {
                 $theater_id = $conn->insert_id;
@@ -22,46 +22,107 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Tạo screens mặc định cho rạp mới (5 phòng chiếu)
                 for ($i = 1; $i <= 5; $i++) {
                     $screen_name = "Phòng " . $i;
-                    $capacity = 100; // Sức chứa mặc định
-                    $screen_sql = "INSERT INTO screens (theater_id, screen_name, capacity) VALUES (?, ?, ?)";
+                    $total_seats = 100; // Sức chứa mặc định
+                    $screen_sql = "INSERT INTO screens (theater_id, screen_name, total_seats) VALUES (?, ?, ?)";
                     $screen_stmt = $conn->prepare($screen_sql);
-                    $screen_stmt->bind_param("isi", $theater_id, $screen_name, $capacity);
+                    $screen_stmt->bind_param("isi", $theater_id, $screen_name, $total_seats);
                     $screen_stmt->execute();
                 }
                 
                 echo '<script>alert("Thêm rạp thành công!"); window.location.href = "?page=theaters";</script>';
             } else {
-                echo '<script>alert("Có lỗi xảy ra!");</script>';
+                echo '<script>alert("Có lỗi xảy ra: ' . $conn->error . '");</script>';
             }
         } else {
-            $sql = "UPDATE theaters SET name = ?, address = ?, phone = ?, description = ?, status = ? WHERE id = ?";
+            $sql = "UPDATE theaters SET name = ?, location = ?, city_id = ?, phone = ?, status = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssssi", $name, $address, $phone, $description, $status, $theater_id);
+            $stmt->bind_param("ssissi", $name, $location, $city_id, $phone, $status, $theater_id);
             
             if ($stmt->execute()) {
                 echo '<script>alert("Cập nhật rạp thành công!"); window.location.href = "?page=theaters";</script>';
             } else {
-                echo '<script>alert("Có lỗi xảy ra!");</script>';
+                echo '<script>alert("Có lỗi xảy ra: ' . $conn->error . '");</script>';
             }
         }
-    } elseif ($action == 'delete') {
-        // Xóa tất cả screens của rạp trước
-        $delete_screens_sql = "DELETE FROM screens WHERE theater_id = ?";
-        $delete_screens_stmt = $conn->prepare($delete_screens_sql);
-        $delete_screens_stmt->bind_param("i", $theater_id);
-        $delete_screens_stmt->execute();
+    } elseif (isset($_POST['action']) && $_POST['action'] == 'edit_screen') {
+        // Xử lý cập nhật phòng chiếu
+        $screen_id = (int)$_POST['screen_id'];
+        $screen_name = trim($_POST['screen_name']);
+        $total_seats = (int)$_POST['capacity']; // Frontend gửi capacity nhưng DB dùng total_seats
         
-        // Xóa rạp
-        $sql = "DELETE FROM theaters WHERE id = ?";
+        $sql = "UPDATE screens SET screen_name = ?, total_seats = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $theater_id);
+        $stmt->bind_param("sii", $screen_name, $total_seats, $screen_id);
         
         if ($stmt->execute()) {
-            echo '<script>alert("Xóa rạp thành công!"); window.location.href = "?page=theaters";</script>';
+            echo '<script>alert("Cập nhật phòng chiếu thành công!"); window.location.reload();</script>';
         } else {
-            echo '<script>alert("Có lỗi xảy ra!");</script>';
+            echo '<script>alert("Có lỗi xảy ra: ' . $conn->error . '");</script>';
         }
     }
+}
+
+// Xử lý xóa rạp (GET request)
+if ($action == 'delete' && $theater_id > 0) {
+    try {
+        // Kiểm tra ràng buộc foreign key trước khi xóa
+        $check_showtimes = "SELECT COUNT(*) as count FROM showtimes s 
+                           INNER JOIN screens sc ON s.screen_id = sc.id 
+                           WHERE sc.theater_id = ?";
+        $stmt_check = $conn->prepare($check_showtimes);
+        $stmt_check->bind_param("i", $theater_id);
+        $stmt_check->execute();
+        $showtime_result = $stmt_check->get_result();
+        $showtime_count = $showtime_result->fetch_assoc()['count'];
+        
+        // Kiểm tra bookings
+        $check_bookings = "SELECT COUNT(*) as count FROM bookings b 
+                          INNER JOIN showtimes s ON b.showtime_id = s.id 
+                          INNER JOIN screens sc ON s.screen_id = sc.id
+                          WHERE sc.theater_id = ?";
+        $stmt_bookings = $conn->prepare($check_bookings);
+        $stmt_bookings->bind_param("i", $theater_id);
+        $stmt_bookings->execute();
+        $booking_result = $stmt_bookings->get_result();
+        $booking_count = $booking_result->fetch_assoc()['count'];
+        
+        if ($showtime_count > 0 || $booking_count > 0) {
+            // Không thể xóa trực tiếp
+            echo '<script>
+                alert("⚠️ KHÔNG THỂ XÓA RẠP NÀY!\\n\\n" +
+                      "Rạp có:\\n" +
+                      "• ' . $showtime_count . ' lịch chiếu\\n" +
+                      "• ' . $booking_count . ' vé đã bán\\n\\n" +
+                      "Hãy chuyển trạng thái thành \'Tạm ngừng\' thay vì xóa.");
+                window.location.href = "?page=theaters";
+            </script>';
+        } else {
+            // Có thể xóa an toàn
+            // Xóa tất cả screens của rạp trước
+            $delete_screens_sql = "DELETE FROM screens WHERE theater_id = ?";
+            $delete_screens_stmt = $conn->prepare($delete_screens_sql);
+            $delete_screens_stmt->bind_param("i", $theater_id);
+            $delete_screens_stmt->execute();
+            
+            // Xóa rạp
+            $sql = "DELETE FROM theaters WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $theater_id);
+            
+            if ($stmt->execute()) {
+                if ($stmt->affected_rows > 0) {
+                    echo '<script>alert("✅ Xóa rạp thành công!"); window.location.href = "?page=theaters";</script>';
+                } else {
+                    echo '<script>alert("❌ Không tìm thấy rạp để xóa!"); window.location.href = "?page=theaters";</script>';
+                }
+            } else {
+                echo '<script>alert("❌ Lỗi: ' . addslashes($conn->error) . '"); window.location.href = "?page=theaters";</script>';
+            }
+        }
+    } catch (Exception $e) {
+        echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=theaters";</script>';
+    }
+    exit;
 }
 
 if ($action == 'add' || $action == 'edit') {
@@ -91,33 +152,45 @@ if ($action == 'add' || $action == 'edit') {
                            required placeholder="VD: CGV Vincom Landmark 81">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Số điện thoại</label>
-                    <input type="text" name="phone" class="form-control"
-                           value="<?php echo $theater ? htmlspecialchars($theater['phone']) : ''; ?>" 
-                           placeholder="VD: 028 3 999 8888">
+                    <label class="form-label">Thành phố *</label>
+                    <select name="city_id" class="form-control" required>
+                        <option value="">Chọn thành phố</option>
+                        <?php
+                        $cities_sql = "SELECT * FROM cities WHERE status = 'active' ORDER BY display_order";
+                        $cities_result = mysqli_query($conn, $cities_sql);
+                        if ($cities_result && mysqli_num_rows($cities_result) > 0) {
+                            while($city = mysqli_fetch_assoc($cities_result)) {
+                                $selected = ($theater && $theater['city_id'] == $city['id']) ? 'selected' : '';
+                                echo '<option value="' . $city['id'] . '" ' . $selected . '>' . htmlspecialchars($city['name']) . '</option>';
+                            }
+                        }
+                        ?>
+                    </select>
                 </div>
             </div>
             
             <div class="form-group">
                 <label class="form-label">Địa chỉ *</label>
                 <input type="text" name="address" class="form-control"
-                       value="<?php echo $theater ? htmlspecialchars($theater['address']) : ''; ?>" 
-                       required placeholder="VD: Tầng B1, Vincom Mega Mall Landmark 81, 772 Điện Biên Phủ, Bình Thạnh, TP.HCM">
+                       value="<?php echo $theater ? htmlspecialchars(isset($theater['location']) ? $theater['location'] : (isset($theater['address']) ? $theater['address'] : '')) : ''; ?>" 
+                       required placeholder="VD: Tầng B1, Vincom Mega Mall Landmark 81, 772 Điện Biên Phủ, Bình Thạnh">
             </div>
             
-            <div class="form-group">
-                <label class="form-label">Trạng thái</label>
-                <select name="status" class="form-control">
-                    <option value="active" <?php echo ($theater && $theater['status'] == 'active') ? 'selected' : ''; ?>>🟢 Đang hoạt động</option>
-                    <option value="inactive" <?php echo ($theater && $theater['status'] == 'inactive') ? 'selected' : ''; ?>>🔴 Tạm ngừng</option>
-                    <option value="maintenance" <?php echo ($theater && $theater['status'] == 'maintenance') ? 'selected' : ''; ?>>🛠️ Bảo trì</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Mô tả</label>
-                <textarea name="description" rows="3" class="form-control"
-                          placeholder="Mô tả về rạp, tiện ích, vị trí..."><?php echo $theater ? htmlspecialchars($theater['description']) : ''; ?></textarea>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" name="phone" class="form-control"
+                           value="<?php echo $theater ? htmlspecialchars(isset($theater['phone']) ? $theater['phone'] : '') : ''; ?>" 
+                           placeholder="VD: 028 3 999 8888">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="status" class="form-control">
+                        <option value="active" <?php echo ($theater && isset($theater['status']) && $theater['status'] == 'active') ? 'selected' : ''; ?>>🟢 Đang hoạt động</option>
+                        <option value="inactive" <?php echo ($theater && isset($theater['status']) && $theater['status'] == 'inactive') ? 'selected' : ''; ?>>🔴 Tạm ngừng</option>
+                        <option value="maintenance" <?php echo ($theater && isset($theater['status']) && $theater['status'] == 'maintenance') ? 'selected' : ''; ?>>🛠️ Bảo trì</option>
+                    </select>
+                </div>
             </div>
             
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
@@ -172,13 +245,16 @@ if ($action == 'add' || $action == 'edit') {
             
             if ($screens_result && $screens_result->num_rows > 0) {
                 while($screen = $screens_result->fetch_assoc()) {
+                    // Kiểm tra trường capacity/total_seats
+                    $capacity = isset($screen['total_seats']) ? $screen['total_seats'] : (isset($screen['capacity']) ? $screen['capacity'] : '100');
+                    
                     echo '<tr>';
                     echo '<td><strong>#' . $screen['id'] . '</strong></td>';
                     echo '<td><strong>🏠 ' . htmlspecialchars($screen['screen_name']) . '</strong></td>';
-                    echo '<td><span style="background: #f8f9fa; padding: 4px 8px; border-radius: 12px;">' . $screen['capacity'] . ' ghế</span></td>';
+                    echo '<td><span style="background: #f8f9fa; padding: 4px 8px; border-radius: 12px;">' . $capacity . ' ghế</span></td>';
                     echo '<td><span class="status-badge status-confirmed">🟢 Hoạt động</span></td>';
                     echo '<td>';
-                    echo '<button class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="editScreen(' . $screen['id'] . ', \'' . htmlspecialchars($screen['screen_name']) . '\', ' . $screen['capacity'] . ')">✏️ Sửa</button>';
+                    echo '<button class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="editScreen(' . $screen['id'] . ', \'' . htmlspecialchars($screen['screen_name']) . '\', ' . $capacity . ')">✏️ Sửa</button>';
                     echo '</td>';
                     echo '</tr>';
                 }
@@ -232,27 +308,36 @@ if ($action == 'add' || $action == 'edit') {
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT t.*, 
+            $sql = "SELECT t.*, c.name as city_name,
                            (SELECT COUNT(*) FROM screens WHERE theater_id = t.id) as screen_count
                     FROM theaters t 
-                    ORDER BY t.name";
+                    LEFT JOIN cities c ON t.city_id = c.id
+                    ORDER BY c.display_order, t.name";
             $result = mysqli_query($conn, $sql);
             
             if ($result && mysqli_num_rows($result) > 0) {
                 while($theater = mysqli_fetch_assoc($result)) {
-                    echo '<tr data-status="' . $theater['status'] . '">';
+                    // Kiểm tra và gán giá trị mặc định cho các key có thể không tồn tại
+                    $status = isset($theater['status']) ? $theater['status'] : 'active';
+                    $address = isset($theater['location']) ? $theater['location'] : (isset($theater['address']) ? $theater['address'] : 'Chưa cập nhật');
+                    $phone = isset($theater['phone']) ? $theater['phone'] : 'Chưa cập nhật';
+                    
+                    echo '<tr data-status="' . $status . '">';
                     echo '<td><strong>#' . $theater['id'] . '</strong></td>';
                     echo '<td>';
                     echo '<div style="font-weight: bold; color: #333; margin-bottom: 5px;">🏢 ' . htmlspecialchars($theater['name']) . '</div>';
+                    if (isset($theater['city_name']) && $theater['city_name']) {
+                        echo '<small style="color: #999;">🏙️ ' . htmlspecialchars($theater['city_name']) . '</small>';
+                    }
                     echo '</td>';
-                    echo '<td><small style="color: #666;">📍 ' . htmlspecialchars($theater['address']) . '</small></td>';
-                    echo '<td><span style="color: #666;">📞 ' . htmlspecialchars($theater['phone']) . '</span></td>';
+                    echo '<td><small style="color: #666;">📍 ' . htmlspecialchars($address) . '</small></td>';
+                    echo '<td><span style="color: #666;">📞 ' . htmlspecialchars($phone) . '</span></td>';
                     echo '<td><strong>' . $theater['screen_count'] . '</strong> phòng</td>';
                     
                     $status_text = '';
                     $status_class = '';
                     $status_icon = '';
-                    switch($theater['status']) {
+                    switch($status) {
                         case 'active':
                             $status_text = 'Đang hoạt động';
                             $status_class = 'status-confirmed';
@@ -267,6 +352,11 @@ if ($action == 'add' || $action == 'edit') {
                             $status_text = 'Bảo trì';
                             $status_class = 'status-pending';
                             $status_icon = '🛠️';
+                            break;
+                        default:
+                            $status_text = 'Đang hoạt động';
+                            $status_class = 'status-confirmed';
+                            $status_icon = '🟢';
                             break;
                     }
                     

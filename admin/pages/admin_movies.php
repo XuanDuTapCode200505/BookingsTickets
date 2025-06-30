@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $message = "Tên phim đã tồn tại!";
                         $message_type = 'error';
                     } else {
-                        $sql = "UPDATE movies SET title = ?, description = ?, duration = ?, genre = ?, release_date = ?, poster_url = ?, status = ?, rating = ?, updated_at = NOW() WHERE id = ?";
+                        $sql = "UPDATE movies SET title = ?, description = ?, duration = ?, genre = ?, release_date = ?, poster_url = ?, status = ?, rating = ? WHERE id = ?";
                         $stmt = $conn->prepare($sql);
                         $stmt->bind_param("ssissssdi", $title, $description, $duration, $genre, $release_date, $poster_url, $status, $rating, $movie_id);
                         
@@ -88,53 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                 }
             }
-        } elseif ($action == 'delete') {
-            // Kiểm tra ràng buộc foreign key trước khi xóa
-            $check_showtimes = "SELECT COUNT(*) as count FROM showtimes WHERE movie_id = ?";
-            $stmt_check = $conn->prepare($check_showtimes);
-            $stmt_check->bind_param("i", $movie_id);
-            $stmt_check->execute();
-            $showtime_result = $stmt_check->get_result();
-            $showtime_count = $showtime_result->fetch_assoc()['count'];
-            
-            // Kiểm tra bookings qua showtimes
-            $check_bookings = "SELECT COUNT(*) as count FROM bookings b 
-                              INNER JOIN showtimes s ON b.showtime_id = s.id 
-                              WHERE s.movie_id = ?";
-            $stmt_bookings = $conn->prepare($check_bookings);
-            $stmt_bookings->bind_param("i", $movie_id);
-            $stmt_bookings->execute();
-            $booking_result = $stmt_bookings->get_result();
-            $booking_count = $booking_result->fetch_assoc()['count'];
-            
-            if ($showtime_count > 0 || $booking_count > 0) {
-                // Không thể xóa trực tiếp
-                echo '<script>
-                    if (confirm("⚠️ CẢNH BÁO!\\n\\nPhim này có:\\n• ' . $showtime_count . ' lịch chiếu\\n• ' . $booking_count . ' vé đã bán\\n\\nBạn muốn chuyển thành \'Ngừng chiếu\' thay vì xóa?")) {
-                        window.location.href = "?page=movies&action=soft_delete&id=' . $movie_id . '";
-                    } else {
-                        window.location.href = "?page=movies";
-                    }
-                </script>';
-            } else {
-                // Có thể xóa an toàn
-                $sql = "DELETE FROM movies WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("i", $movie_id);
-                
-                if ($stmt->execute()) {
-                    if ($stmt->affected_rows > 0) {
-                        echo '<script>alert("✅ Xóa phim thành công!"); window.location.href = "?page=movies";</script>';
-                    } else {
-                        echo '<script>alert("❌ Không tìm thấy phim để xóa!"); window.location.href = "?page=movies";</script>';
-                    }
-                } else {
-                    echo '<script>alert("❌ Lỗi: ' . addslashes($conn->error) . '"); window.location.href = "?page=movies";</script>';
-                }
-            }
         } elseif ($action == 'soft_delete') {
             // Soft delete - chuyển trạng thái thành 'ended'
-            $sql = "UPDATE movies SET status = 'ended', updated_at = NOW() WHERE id = ?";
+            $sql = "UPDATE movies SET status = 'ended' WHERE id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("i", $movie_id);
             
@@ -143,31 +99,165 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 echo '<script>alert("❌ Có lỗi xảy ra: ' . addslashes($conn->error) . '"); window.location.href = "?page=movies";</script>';
             }
-        } elseif ($action == 'toggle_status') {
-            // Toggle trạng thái phim
-            $current_status_sql = "SELECT status FROM movies WHERE id = ?";
-            $current_stmt = $conn->prepare($current_status_sql);
-            $current_stmt->bind_param("i", $movie_id);
-            $current_stmt->execute();
-            $current_result = $current_stmt->get_result();
-            
-            if ($current_result->num_rows > 0) {
-                $current_status = $current_result->fetch_assoc()['status'];
-                $new_status = ($current_status == 'showing') ? 'ended' : 'showing';
-                
-                $update_sql = "UPDATE movies SET status = ?, updated_at = NOW() WHERE id = ?";
-                $update_stmt = $conn->prepare($update_sql);
-                $update_stmt->bind_param("si", $new_status, $movie_id);
-                
-                if ($update_stmt->execute()) {
-                    $status_text = ($new_status == 'showing') ? 'Đang chiếu' : 'Ngừng chiếu';
-                    echo '<script>alert("✅ Đã chuyển trạng thái thành: ' . $status_text . '"); window.location.href = "?page=movies";</script>';
+        }
+    } catch (Exception $e) {
+        echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=movies";</script>';
+    }
+}
+
+// Xử lý xóa phim (GET request)
+if ($action == 'delete' && $movie_id > 0) {
+    try {
+        // Kiểm tra ràng buộc foreign key trước khi xóa
+        $check_showtimes = "SELECT COUNT(*) as count FROM showtimes WHERE movie_id = ?";
+        $stmt_check = $conn->prepare($check_showtimes);
+        $stmt_check->bind_param("i", $movie_id);
+        $stmt_check->execute();
+        $showtime_result = $stmt_check->get_result();
+        $showtime_count = $showtime_result->fetch_assoc()['count'];
+        
+        // Kiểm tra bookings qua showtimes
+        $check_bookings = "SELECT COUNT(*) as count FROM bookings b 
+                          INNER JOIN showtimes s ON b.showtime_id = s.id 
+                          WHERE s.movie_id = ?";
+        $stmt_bookings = $conn->prepare($check_bookings);
+        $stmt_bookings->bind_param("i", $movie_id);
+        $stmt_bookings->execute();
+        $booking_result = $stmt_bookings->get_result();
+        $booking_count = $booking_result->fetch_assoc()['count'];
+        
+        // Luôn cho phép xóa nhưng cảnh báo mạnh nếu có ràng buộc
+        if ($showtime_count > 0 || $booking_count > 0) {
+            echo '<script>
+                if (confirm("🚨 CẢNH BÁO XÓA VĨNH VIỄN!\\n\\n" +
+                           "Phim này có:\\n" +
+                           "• ' . $showtime_count . ' lịch chiếu\\n" +
+                           "• ' . $booking_count . ' vé đã bán\\n\\n" +
+                           "⚠️ XÓA SẼ MẤT TẤT CẢ DỮ LIỆU!\\n" +
+                           "Bạn có CHẮC CHẮN muốn xóa vĩnh viễn?")) {
+                    // User chọn xóa dù có ràng buộc
+                    var finalConfirm = confirm("❌ XÁC NHẬN LẦN CUỐI:\\n\\nPhim sẽ bị XÓA VĨNH VIỄN cùng với TẤT CẢ lịch chiếu và vé đã bán!\\n\\nKhông thể hoàn tác!");
+                    if (finalConfirm) {
+                        window.location.href = "?page=movies&action=force_delete&id=' . $movie_id . '";
+                    } else {
+                        window.location.href = "?page=movies";
+                    }
+                } else {
+                    window.location.href = "?page=movies";
                 }
+            </script>';
+        } else {
+            // Xóa an toàn - không có ràng buộc
+            $sql = "DELETE FROM movies WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $movie_id);
+            
+            if ($stmt->execute()) {
+                if ($stmt->affected_rows > 0) {
+                    echo '<script>alert("✅ Xóa phim thành công!"); window.location.href = "?page=movies";</script>';
+                } else {
+                    echo '<script>alert("❌ Không tìm thấy phim để xóa!"); window.location.href = "?page=movies";</script>';
+                }
+            } else {
+                echo '<script>alert("❌ Lỗi: ' . addslashes($conn->error) . '"); window.location.href = "?page=movies";</script>';
             }
         }
     } catch (Exception $e) {
         echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=movies";</script>';
     }
+    exit;
+}
+
+// Xử lý soft delete phim (GET request) 
+if ($action == 'soft_delete' && $movie_id > 0) {
+    try {
+        $sql = "UPDATE movies SET status = 'ended' WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $movie_id);
+        
+        if ($stmt->execute()) {
+            echo '<script>alert("✅ Đã chuyển phim thành \'Ngừng chiếu\'!"); window.location.href = "?page=movies";</script>';
+        } else {
+            echo '<script>alert("❌ Có lỗi xảy ra: ' . addslashes($conn->error) . '"); window.location.href = "?page=movies";</script>';
+        }
+    } catch (Exception $e) {
+        echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=movies";</script>';
+    }
+    exit;
+}
+
+// Xử lý force delete phim (GET request) - Xóa có ràng buộc
+if ($action == 'force_delete' && $movie_id > 0) {
+    try {
+        // Xóa tất cả bookings liên quan đến phim này
+        $delete_bookings = "DELETE b FROM bookings b 
+                           INNER JOIN showtimes s ON b.showtime_id = s.id 
+                           WHERE s.movie_id = ?";
+        $stmt_del_bookings = $conn->prepare($delete_bookings);
+        $stmt_del_bookings->bind_param("i", $movie_id);
+        $stmt_del_bookings->execute();
+        
+        // Xóa tất cả showtimes của phim
+        $delete_showtimes = "DELETE FROM showtimes WHERE movie_id = ?";
+        $stmt_del_showtimes = $conn->prepare($delete_showtimes);
+        $stmt_del_showtimes->bind_param("i", $movie_id);
+        $stmt_del_showtimes->execute();
+        
+        // Cuối cùng xóa phim
+        $sql = "DELETE FROM movies WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $movie_id);
+        
+        if ($stmt->execute()) {
+            if ($stmt->affected_rows > 0) {
+                echo '<script>alert("✅ Đã XÓA VĨNH VIỄN phim và tất cả dữ liệu liên quan!"); window.location.href = "?page=movies";</script>';
+            } else {
+                echo '<script>alert("❌ Không tìm thấy phim để xóa!"); window.location.href = "?page=movies";</script>';
+            }
+        } else {
+            echo '<script>alert("❌ Lỗi: ' . addslashes($conn->error) . '"); window.location.href = "?page=movies";</script>';
+        }
+    } catch (Exception $e) {
+        echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=movies";</script>';
+    }
+    exit;
+}
+
+// Xử lý toggle status phim (GET request) - Tạm ngưng/Kích hoạt
+if ($action == 'toggle_status' && $movie_id > 0) {
+    try {
+        // Lấy trạng thái hiện tại
+        $current_status_sql = "SELECT status FROM movies WHERE id = ?";
+        $current_stmt = $conn->prepare($current_status_sql);
+        $current_stmt->bind_param("i", $movie_id);
+        $current_stmt->execute();
+        $current_result = $current_stmt->get_result();
+        
+        if ($current_result->num_rows > 0) {
+            $current_status = $current_result->fetch_assoc()['status'];
+            $new_status = ($current_status == 'showing') ? 'ended' : 'showing';
+            
+            $update_sql = "UPDATE movies SET status = ? WHERE id = ?";
+            $update_stmt = $conn->prepare($update_sql);
+            $update_stmt->bind_param("si", $new_status, $movie_id);
+            
+            if ($update_stmt->execute()) {
+                if ($update_stmt->affected_rows > 0) {
+                    $status_text = ($new_status == 'showing') ? 'Đang chiếu' : 'Ngừng chiếu';
+                    echo '<script>alert("✅ Đã chuyển trạng thái thành: ' . $status_text . '"); window.location.href = "?page=movies";</script>';
+                } else {
+                    echo '<script>alert("❌ Không tìm thấy phim để cập nhật!"); window.location.href = "?page=movies";</script>';
+                }
+            } else {
+                echo '<script>alert("❌ Lỗi: ' . addslashes($conn->error) . '"); window.location.href = "?page=movies";</script>';
+            }
+        } else {
+            echo '<script>alert("❌ Không tìm thấy phim!"); window.location.href = "?page=movies";</script>';
+        }
+    } catch (Exception $e) {
+        echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=movies";</script>';
+    }
+    exit;
 }
 
 // Form thêm/sửa phim
@@ -638,20 +728,20 @@ document.getElementById('movieForm').addEventListener('submit', function(e) {
                     echo '<i class="fas fa-edit"></i>';
                     echo '</a>';
                     
-                    // Nút toggle trạng thái
+                    // Nút tạm ngưng/kích hoạt
                     if ($movie['status'] == 'showing') {
-                        echo '<a href="?page=movies&action=toggle_status&id=' . $movie['id'] . '" class="btn btn-warning btn-sm" title="Ngừng chiếu" onclick="return confirm(\'Chuyển phim thành ngừng chiếu?\')">';
-                        echo '<i class="fas fa-pause"></i>';
+                        echo '<a href="?page=movies&action=toggle_status&id=' . $movie['id'] . '" class="btn btn-warning btn-sm" title="Tạm ngưng chiếu phim" onclick="return confirm(\'🔶 Tạm ngưng chiếu phim này?\\n\\nPhim sẽ chuyển thành trạng thái \\\"Ngừng chiếu\\\" nhưng vẫn giữ nguyên dữ liệu.\')">';
+                        echo '<i class="fas fa-stop-circle"></i>';
                         echo '</a>';
                     } else {
-                        echo '<a href="?page=movies&action=toggle_status&id=' . $movie['id'] . '" class="btn btn-success btn-sm" title="Phát hành" onclick="return confirm(\'Chuyển phim thành đang chiếu?\')">';
-                        echo '<i class="fas fa-play"></i>';
+                        echo '<a href="?page=movies&action=toggle_status&id=' . $movie['id'] . '" class="btn btn-success btn-sm" title="Kích hoạt lại phim" onclick="return confirm(\'🔶 Kích hoạt lại phim này?\\n\\nPhim sẽ chuyển thành trạng thái \\\"Đang chiếu\\\".\')">';
+                        echo '<i class="fas fa-play-circle"></i>';
                         echo '</a>';
                     }
                     
-                    // Nút xóa
-                    echo '<a href="?page=movies&action=delete&id=' . $movie['id'] . '" class="btn btn-danger btn-sm" title="Xóa phim" onclick="return confirm(\'Bạn có chắc muốn xóa phim này?\')">';
-                    echo '<i class="fas fa-trash"></i>';
+                    // Nút xóa vĩnh viễn
+                    echo '<a href="?page=movies&action=delete&id=' . $movie['id'] . '" class="btn btn-danger btn-sm" title="XÓA VĨNH VIỄN phim" onclick="return confirm(\'🗑️ XÓA VĨNH VIỄN PHIM?\\n\\nPhim sẽ bị xóa hoàn toàn khỏi hệ thống!\\n\\n⚠️ Khuyến nghị: Dùng \\\"Tạm ngưng\\\" thay vì xóa.\')">';
+                    echo '<i class="fas fa-trash-alt"></i>';
                     echo '</a>';
                     
                     echo '</div>';
