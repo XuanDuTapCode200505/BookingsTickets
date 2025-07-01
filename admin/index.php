@@ -192,8 +192,8 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                         echo '</div>';
                     echo '</div>';
                         
-                        // Đếm người dùng
-                        $users_result = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'customer'");
+                        // Đếm người dùng (role phải là 'user', không phải 'customer')
+                        $users_result = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'user'");
                         $users_count = $users_result ? $users_result->fetch_assoc()['count'] : 0;
                     
                     echo '<div class="stat-card">';
