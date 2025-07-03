@@ -91,10 +91,6 @@ $result = $stmt->get_result();
                                         Hủy vé
                                     </button>
                                 <?php endif; ?>
-                                
-                                <button class="btn-print" onclick="printTicket(<?php echo $booking['id']; ?>)">
-                                    In vé
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -296,12 +292,9 @@ function printTicket(bookingId) {
     color: white;
 }
 
-.btn-print {
-    background-color: #17a2b8;
-    color: white;
-}
 
-.btn-cancel:hover, .btn-print:hover {
+
+.btn-cancel:hover{
     transform: scale(1.05);
 }
 

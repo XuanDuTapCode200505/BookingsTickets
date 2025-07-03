@@ -40,9 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
     
-    // Thêm người dùng mới
+    // Mã hóa mật khẩu
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    
+    // Thêm người dùng mới với mật khẩu đã mã hóa
     $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $name, $email, $password);
+    $stmt->bind_param("sss", $name, $email, $hashed_password);
     
     if ($stmt->execute()) {
         $_SESSION['register_success'] = "Đăng ký thành công! Bạn có thể đăng nhập.";
