@@ -50,9 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $stmt->bind_param("ssissssd", $title, $description, $duration, $genre, $release_date, $poster_url, $status, $rating);
                         
                         if ($stmt->execute()) {
-                            $message = "Thêm phim thành công!";
-                            $message_type = 'success';
-                            echo '<script>setTimeout(function(){ window.location.href = "?page=movies"; }, 1500);</script>';
+                            echo '<script>alert("✅ Thêm phim thành công!"); window.location.href = "?page=movies";</script>';
+                            exit;
                         } else {
                             throw new Exception("Lỗi database: " . $conn->error);
                         }
@@ -75,12 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         
                         if ($stmt->execute()) {
                             if ($stmt->affected_rows > 0) {
-                                $message = "Cập nhật phim thành công!";
-                                $message_type = 'success';
-                                echo '<script>setTimeout(function(){ window.location.href = "?page=movies"; }, 1500);</script>';
+                                echo '<script>alert("✅ Cập nhật phim thành công!"); window.location.href = "?page=movies";</script>';
+                                exit;
                             } else {
-                                $message = "Không có thay đổi nào được thực hiện!";
-                                $message_type = 'warning';
+                                echo '<script>alert("ℹ️ Không có thay đổi nào được thực hiện!"); window.location.href = "?page=movies";</script>';
+                                exit;
                             }
                         } else {
                             throw new Exception("Lỗi database: " . $conn->error);

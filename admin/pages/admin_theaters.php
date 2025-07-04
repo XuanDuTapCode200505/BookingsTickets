@@ -62,65 +62,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Xử lý xóa rạp (GET request)
+// Xử lý xóa rạp qua GET request
 if ($action == 'delete' && $theater_id > 0) {
-    try {
-        // Kiểm tra ràng buộc foreign key trước khi xóa
-        $check_showtimes = "SELECT COUNT(*) as count FROM showtimes s 
-                           INNER JOIN screens sc ON s.screen_id = sc.id 
-                           WHERE sc.theater_id = ?";
-        $stmt_check = $conn->prepare($check_showtimes);
-        $stmt_check->bind_param("i", $theater_id);
-        $stmt_check->execute();
-        $showtime_result = $stmt_check->get_result();
-        $showtime_count = $showtime_result->fetch_assoc()['count'];
-        
-        // Kiểm tra bookings
-        $check_bookings = "SELECT COUNT(*) as count FROM bookings b 
-                          INNER JOIN showtimes s ON b.showtime_id = s.id 
-                          INNER JOIN screens sc ON s.screen_id = sc.id
-                          WHERE sc.theater_id = ?";
-        $stmt_bookings = $conn->prepare($check_bookings);
-        $stmt_bookings->bind_param("i", $theater_id);
-        $stmt_bookings->execute();
-        $booking_result = $stmt_bookings->get_result();
-        $booking_count = $booking_result->fetch_assoc()['count'];
-        
-        if ($showtime_count > 0 || $booking_count > 0) {
-            // Không thể xóa trực tiếp
-            echo '<script>
-                alert("⚠️ KHÔNG THỂ XÓA RẠP NÀY!\\n\\n" +
-                      "Rạp có:\\n" +
-                      "• ' . $showtime_count . ' lịch chiếu\\n" +
-                      "• ' . $booking_count . ' vé đã bán\\n\\n" +
-                      "Hãy chuyển trạng thái thành \'Tạm ngừng\' thay vì xóa.");
-                window.location.href = "?page=theaters";
-            </script>';
-        } else {
-            // Có thể xóa an toàn
-            // Xóa tất cả screens của rạp trước
-            $delete_screens_sql = "DELETE FROM screens WHERE theater_id = ?";
-            $delete_screens_stmt = $conn->prepare($delete_screens_sql);
-            $delete_screens_stmt->bind_param("i", $theater_id);
-            $delete_screens_stmt->execute();
-            
-            // Xóa rạp
-            $sql = "DELETE FROM theaters WHERE id = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $theater_id);
-            
-            if ($stmt->execute()) {
-                if ($stmt->affected_rows > 0) {
-                    echo '<script>alert("✅ Xóa rạp thành công!"); window.location.href = "?page=theaters";</script>';
-                } else {
-                    echo '<script>alert("❌ Không tìm thấy rạp để xóa!"); window.location.href = "?page=theaters";</script>';
-                }
-            } else {
-                echo '<script>alert("❌ Lỗi: ' . addslashes($conn->error) . '"); window.location.href = "?page=theaters";</script>';
-            }
+    // Kiểm tra ràng buộc foreign key trước khi xóa
+    $check_showtimes = "SELECT COUNT(*) as count FROM showtimes s 
+                       INNER JOIN screens sc ON s.screen_id = sc.id 
+                       WHERE sc.theater_id = ?";
+    $stmt_check = $conn->prepare($check_showtimes);
+    if ($stmt_check === false) {
+        echo '<script>alert("❌ Lỗi prepare check showtimes: ' . addslashes($conn->error) . '"); window.location.href = "?page=theaters";</script>';
+        exit;
+    }
+    $stmt_check->bind_param("i", $theater_id);
+    $stmt_check->execute();
+    $showtime_result = $stmt_check->get_result();
+    $showtime_count = $showtime_result->fetch_assoc()['count'];
+    $stmt_check->close();
+    
+    // Kiểm tra bookings
+    $check_bookings = "SELECT COUNT(*) as count FROM bookings b 
+                      INNER JOIN showtimes s ON b.showtime_id = s.id 
+                      INNER JOIN screens sc ON s.screen_id = sc.id
+                      WHERE sc.theater_id = ?";
+    $stmt_bookings = $conn->prepare($check_bookings);
+    if ($stmt_bookings === false) {
+        echo '<script>alert("❌ Lỗi prepare check bookings: ' . addslashes($conn->error) . '"); window.location.href = "?page=theaters";</script>';
+        exit;
+    }
+    $stmt_bookings->bind_param("i", $theater_id);
+    $stmt_bookings->execute();
+    $booking_result = $stmt_bookings->get_result();
+    $booking_count = $booking_result->fetch_assoc()['count'];
+    $stmt_bookings->close();
+    
+    if ($showtime_count > 0 || $booking_count > 0) {
+        // Không thể xóa trực tiếp
+        echo '<script>
+            alert("⚠️ KHÔNG THỂ XÓA RẠP NÀY!\\n\\n" +
+                  "Rạp có:\\n" +
+                  "• ' . $showtime_count . ' lịch chiếu\\n" +
+                  "• ' . $booking_count . ' vé đã bán\\n\\n" +
+                  "Hãy chuyển trạng thái thành \'Tạm ngừng\' thay vì xóa.");
+            window.location.href = "?page=theaters";
+        </script>';
+    } else {
+        // Có thể xóa an toàn
+        // Xóa tất cả screens của rạp trước
+        $delete_screens_sql = "DELETE FROM screens WHERE theater_id = ?";
+        $delete_screens_stmt = $conn->prepare($delete_screens_sql);
+        if ($delete_screens_stmt === false) {
+            echo '<script>alert("❌ Lỗi prepare delete screens: ' . addslashes($conn->error) . '"); window.location.href = "?page=theaters";</script>';
+            exit;
         }
-    } catch (Exception $e) {
-        echo '<script>alert("❌ Lỗi: ' . addslashes($e->getMessage()) . '"); window.location.href = "?page=theaters";</script>';
+        $delete_screens_stmt->bind_param("i", $theater_id);
+        $delete_screens_stmt->execute();
+        $delete_screens_stmt->close();
+        
+        // Xóa rạp
+        $sql = "DELETE FROM theaters WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            echo '<script>alert("❌ Lỗi prepare delete theater: ' . addslashes($conn->error) . '"); window.location.href = "?page=theaters";</script>';
+            exit;
+        }
+        $stmt->bind_param("i", $theater_id);
+        
+        if ($stmt->execute()) {
+            if ($stmt->affected_rows > 0) {
+                echo '<script>alert("✅ Xóa rạp thành công!"); window.location.href = "?page=theaters";</script>';
+            } else {
+                echo '<script>alert("❌ Không tìm thấy rạp để xóa!"); window.location.href = "?page=theaters";</script>';
+            }
+        } else {
+            echo '<script>alert("❌ Lỗi thực thi: ' . addslashes($stmt->error) . '"); window.location.href = "?page=theaters";</script>';
+        }
+        $stmt->close();
     }
     exit;
 }

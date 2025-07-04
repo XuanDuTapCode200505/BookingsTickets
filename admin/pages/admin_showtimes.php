@@ -2,7 +2,26 @@
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $showtime_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Xử lý các action
+// Xử lý action delete qua GET request
+if ($action == 'delete' && $showtime_id > 0) {
+    $sql = "DELETE FROM showtimes WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        echo '<script>alert("❌ Lỗi prepare: ' . addslashes($conn->error) . '"); window.location.href = "?page=showtimes";</script>';
+        exit;
+    }
+    $stmt->bind_param("i", $showtime_id);
+    
+    if ($stmt->execute()) {
+        echo '<script>alert("Xóa lịch chiếu thành công!"); window.location.href = "?page=showtimes";</script>';
+    } else {
+        echo '<script>alert("❌ Lỗi thực thi: ' . addslashes($stmt->error) . '"); window.location.href = "?page=showtimes";</script>';
+    }
+    $stmt->close();
+    exit;
+}
+
+// Xử lý các action khác qua POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($action == 'add' || $action == 'edit') {
         $movie_id = intval($_POST['movie_id']);
@@ -31,16 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 echo '<script>alert("Có lỗi xảy ra!");</script>';
             }
-        }
-    } elseif ($action == 'delete') {
-        $sql = "DELETE FROM showtimes WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $showtime_id);
-        
-        if ($stmt->execute()) {
-            echo '<script>alert("Xóa lịch chiếu thành công!"); window.location.href = "?page=showtimes";</script>';
-        } else {
-            echo '<script>alert("Có lỗi xảy ra!");</script>';
         }
     }
 }

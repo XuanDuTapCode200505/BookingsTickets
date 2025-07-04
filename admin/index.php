@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 
 // Kiểm tra session timeout (chỉ áp dụng nếu không có "remember me")
 if (!isset($_SESSION['remember_me']) || $_SESSION['remember_me'] !== true) {
-    $timeout_duration = 3600; // 1 giờ
+    $timeout_duration = 7200; // 2 giờ (tăng từ 1 giờ lên 2 giờ cho admin)
     
     if (isset($_SESSION['last_activity'])) {
         if (time() - $_SESSION['last_activity'] > $timeout_duration) {
@@ -48,7 +48,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                 <i class="fas fa-user-shield"></i>
                 <span>Xin chào, <?php echo htmlspecialchars($_SESSION['name']); ?></span>
                 <small style="display: block; font-size: 11px; opacity: 0.8;">
-                    🔒 Auto logout: 10 phút | 🚪 Logout khi đóng tab
+                    🔒 Session timeout: 2 giờ | 🔄 Auto refresh activity
                 </small>
             </div>
             <a href="../pages/actions/logout_process.php" class="logout-btn">

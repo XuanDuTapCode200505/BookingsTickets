@@ -2,7 +2,69 @@
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $admin_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Xử lý các action
+// Kiểm tra column status có tồn tại không (global check)
+$check_column_sql = "SHOW COLUMNS FROM users LIKE 'status'";
+$check_column_result = mysqli_query($conn, $check_column_sql);
+$has_status = mysqli_num_rows($check_column_result) > 0;
+
+// Xử lý action delete qua GET request
+if ($action == 'delete' && $admin_id > 0) {
+    if ($has_status) {
+        // Không cho phép xóa admin cuối cùng (soft delete)
+        $count_sql = "SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'";
+        $count_result = $conn->query($count_sql);
+        $count_data = $count_result->fetch_assoc();
+        
+        if ($count_data['count'] <= 1) {
+            echo '<script>alert("Không thể xóa admin cuối cùng!"); window.location.href = "?page=admins";</script>';
+            exit;
+        } else {
+            $sql = "UPDATE users SET status = 'deleted' WHERE id = ? AND role = 'admin'";
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                echo '<script>alert("❌ Lỗi prepare: ' . addslashes($conn->error) . '"); window.location.href = "?page=admins";</script>';
+                exit;
+            }
+            $stmt->bind_param("i", $admin_id);
+            
+            if ($stmt->execute()) {
+                echo '<script>alert("Xóa admin thành công!"); window.location.href = "?page=admins";</script>';
+            } else {
+                echo '<script>alert("❌ Lỗi thực thi: ' . addslashes($stmt->error) . '"); window.location.href = "?page=admins";</script>';
+            }
+            $stmt->close();
+            exit;
+        }
+    } else {
+        // Hard delete nếu không có column status
+        $count_sql = "SELECT COUNT(*) as count FROM users WHERE role = 'admin'";
+        $count_result = $conn->query($count_sql);
+        $count_data = $count_result->fetch_assoc();
+        
+        if ($count_data['count'] <= 1) {
+            echo '<script>alert("Không thể xóa admin cuối cùng!"); window.location.href = "?page=admins";</script>';
+            exit;
+        } else {
+            $sql = "DELETE FROM users WHERE id = ? AND role = 'admin'";
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                echo '<script>alert("❌ Lỗi prepare: ' . addslashes($conn->error) . '"); window.location.href = "?page=admins";</script>';
+                exit;
+            }
+            $stmt->bind_param("i", $admin_id);
+            
+            if ($stmt->execute()) {
+                echo '<script>alert("Xóa admin thành công!"); window.location.href = "?page=admins";</script>';
+            } else {
+                echo '<script>alert("❌ Lỗi thực thi: ' . addslashes($stmt->error) . '"); window.location.href = "?page=admins";</script>';
+            }
+            $stmt->close();
+            exit;
+        }
+    }
+}
+
+// Xử lý các action khác qua POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($action == 'add') {
         $name = trim($_POST['name']);
@@ -31,11 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo '<script>alert("Email này đã được sử dụng!");</script>';
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                
-                // Kiểm tra column status có tồn tại không
-                $check_column_sql = "SHOW COLUMNS FROM users LIKE 'status'";
-                $check_column_result = mysqli_query($conn, $check_column_sql);
-                $has_status = mysqli_num_rows($check_column_result) > 0;
                 
                 if ($has_status) {
                     $sql = "INSERT INTO users (name, email, phone, password, role, status) VALUES (?, ?, ?, ?, 'admin', 'active')";
@@ -85,11 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($check_result->num_rows > 0) {
             echo '<script>alert("Email này đã được sử dụng!");</script>';
         } else {
-            // Kiểm tra column status có tồn tại không
-            $check_column_sql = "SHOW COLUMNS FROM users LIKE 'status'";
-            $check_column_result = mysqli_query($conn, $check_column_sql);
-            $has_status = mysqli_num_rows($check_column_result) > 0;
-            
             if (!empty($password)) {
                 // Cập nhật với mật khẩu mới
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -138,108 +190,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             $stmt->close();
         }
-    } elseif ($action == 'delete') {
-        // Kiểm tra column status có tồn tại không
-        $check_column_sql = "SHOW COLUMNS FROM users LIKE 'status'";
-        $check_column_result = mysqli_query($conn, $check_column_sql);
-        $has_status = mysqli_num_rows($check_column_result) > 0;
-        
-        if ($has_status) {
-            // Không cho phép xóa admin cuối cùng (soft delete)
-            $count_sql = "SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'";
-            $count_result = $conn->query($count_sql);
-            $count_data = $count_result->fetch_assoc();
-            
-            if ($count_data['count'] <= 1) {
-                echo '<script>alert("Không thể xóa admin cuối cùng!");</script>';
-            } else {
-                $sql = "UPDATE users SET status = 'deleted' WHERE id = ? AND role = 'admin'";
-                $stmt = $conn->prepare($sql);
-                if ($stmt === false) {
-                    echo '<script>alert("❌ Lỗi prepare: ' . addslashes($conn->error) . '");</script>';
-                    return;
-                }
-                $stmt->bind_param("i", $admin_id);
-                
-                if ($stmt->execute()) {
-                    echo '<script>alert("Xóa admin thành công!"); window.location.href = "?page=admins";</script>';
-                } else {
-                    echo '<script>alert("❌ Lỗi thực thi: ' . addslashes($stmt->error) . '");</script>';
-                }
-                $stmt->close();
-            }
-        } else {
-            // Hard delete nếu không có column status
-            $count_sql = "SELECT COUNT(*) as count FROM users WHERE role = 'admin'";
-            $count_result = $conn->query($count_sql);
-            $count_data = $count_result->fetch_assoc();
-            
-            if ($count_data['count'] <= 1) {
-                echo '<script>alert("Không thể xóa admin cuối cùng!");</script>';
-            } else {
-                $sql = "DELETE FROM users WHERE id = ? AND role = 'admin'";
-                $stmt = $conn->prepare($sql);
-                if ($stmt === false) {
-                    echo '<script>alert("❌ Lỗi prepare: ' . addslashes($conn->error) . '");</script>';
-                    return;
-                }
-                $stmt->bind_param("i", $admin_id);
-                
-                if ($stmt->execute()) {
-                    echo '<script>alert("Xóa admin thành công!"); window.location.href = "?page=admins";</script>';
-                } else {
-                    echo '<script>alert("❌ Lỗi thực thi: ' . addslashes($stmt->error) . '");</script>';
-                }
-                $stmt->close();
-            }
-        }
     }
 }
 
-if ($action == 'add' || $action == 'edit') {
-    $admin = null;
-    if ($action == 'edit' && $admin_id > 0) {
-        // Kiểm tra column status có tồn tại không
-        $check_column_sql = "SHOW COLUMNS FROM users LIKE 'status'";
-        $check_column_result = mysqli_query($conn, $check_column_sql);
-        $has_status = mysqli_num_rows($check_column_result) > 0;
-        
-        if ($has_status) {
-            $sql = "SELECT * FROM users WHERE id = ? AND role = 'admin' AND status != 'deleted'";
-        } else {
-            $sql = "SELECT * FROM users WHERE id = ? AND role = 'admin'";
-        }
-        
-        $stmt = $conn->prepare($sql);
-        if ($stmt === false) {
-            echo '<script>alert("❌ Lỗi database: ' . addslashes($conn->error) . '"); window.location.href = "?page=admins";</script>';
-            exit;
-        }
-        
-        $stmt->bind_param("i", $admin_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $admin = $result->fetch_assoc();
-        $stmt->close();
-        
-        if (!$admin) {
-            echo '<script>alert("Không tìm thấy admin này!"); window.location.href = "?page=admins";</script>';
-            exit;
-        }
-    }
-}
-
-// Nếu là sửa, lấy dữ liệu combo
-$combo = null;
+// Lấy thông tin admin khi edit
+$admin = null;
 if ($action == 'edit' && $admin_id > 0) {
-    $sql = "SELECT * FROM combos WHERE id=?";
+    if ($has_status) {
+        $sql = "SELECT * FROM users WHERE id = ? AND role = 'admin' AND status != 'deleted'";
+    } else {
+        $sql = "SELECT * FROM users WHERE id = ? AND role = 'admin'";
+    }
+    
     $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        echo '<script>alert("❌ Lỗi database: ' . addslashes($conn->error) . '"); window.location.href = "?page=admins";</script>';
+        exit;
+    }
+    
     $stmt->bind_param("i", $admin_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    $combo = $result->fetch_assoc();
+    $admin = $result->fetch_assoc();
+    $stmt->close();
+    
+    if (!$admin) {
+        echo '<script>alert("Không tìm thấy admin này!"); window.location.href = "?page=admins";</script>';
+        exit;
+    }
 }
-?>
+
+if ($action == 'add' || $action == 'edit') { ?>
 
 <div class="content-header">
     <h1 class="content-title">👑 Admin - <?php echo $action == 'add' ? 'Thêm admin mới' : 'Chỉnh sửa admin'; ?></h1>
@@ -248,9 +229,16 @@ if ($action == 'edit' && $admin_id > 0) {
 
 <div class="card">
     <div class="card-body">
-        <h2><?php echo $action == 'edit' ? 'Chỉnh sửa combo' : 'Thêm combo mới'; ?></h2>
-        <?php if ($message): ?>
-            <div class="alert <?php echo $message_type; ?>"><?php echo $message; ?></div>
+        <?php if ($action == 'add'): ?>
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
+            <h3 style="margin: 0; font-size: 24px; font-weight: bold;">👑 Thêm Admin Mới</h3>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Tạo tài khoản quản trị viên cho hệ thống</p>
+        </div>
+        <?php else: ?>
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
+            <h3 style="margin: 0; font-size: 24px; font-weight: bold;">✏️ Chỉnh Sửa Admin</h3>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Cập nhật thông tin quản trị viên: <?php echo htmlspecialchars($admin['name']); ?></p>
+        </div>
         <?php endif; ?>
         <form method="post">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
@@ -351,11 +339,6 @@ if ($action == 'edit' && $admin_id > 0) {
         </thead>
         <tbody>
             <?php
-            // Kiểm tra column status có tồn tại không
-            $check_column_sql = "SHOW COLUMNS FROM users LIKE 'status'";
-            $check_column_result = mysqli_query($conn, $check_column_sql);
-            $has_status = mysqli_num_rows($check_column_result) > 0;
-            
             if ($has_status) {
                 $sql = "SELECT * FROM users WHERE role = 'admin' AND status != 'deleted' ORDER BY created_at DESC";
             } else {
