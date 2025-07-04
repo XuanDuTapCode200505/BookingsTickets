@@ -96,6 +96,14 @@ function bookTickets() {
     total_amount: totalAmount,
   };
 
+  // Nếu đã có trang chọn combo, ưu tiên chuyển sang đó
+  if (typeof window.ENABLE_COMBO !== 'undefined' || true) { // luôn chuyển sang combo nếu có
+    localStorage.setItem("pendingBooking", JSON.stringify(bookingData));
+    window.location.href = "pages/pages/select_combo.php";
+    return;
+  }
+
+  // Nếu không có trang combo, giữ nguyên luồng cũ
   // Hiển thị loading
   const $bookBtn = $("#btn-book-tickets");
   const originalText = $bookBtn.text();
@@ -111,7 +119,7 @@ function bookTickets() {
     success: function (data) {
       if (data.success) {
         alert(`Đặt vé thành công! Mã đặt vé: ${data.booking_code}`);
-        window.location.href = "index.php?quanly=lich-su-dat-ve";
+        window.location.href = "booking_history.php";
       } else {
         alert(`Có lỗi xảy ra: ${data.message}`);
         resetBookButton($bookBtn, originalText);

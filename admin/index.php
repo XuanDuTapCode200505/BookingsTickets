@@ -74,6 +74,12 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                             <span>Quản lý Phim</span>
                         </a>
                     </li>
+                    <li class="nav-item <?php echo $page == 'combos' ? 'active' : ''; ?>">
+                        <a href="?page=combos" class="nav-link">
+                            <i class="fas fa-cocktail"></i>
+                            <span>Quản lý Combo</span>
+                        </a>
+                    </li>
                     <li class="nav-item <?php echo $page == 'theaters' ? 'active' : ''; ?>">
                         <a href="?page=theaters" class="nav-link">
                             <i class="fas fa-building"></i>
@@ -122,6 +128,10 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             switch($page) {
                 case 'movies':
                         include 'pages/admin_movies.php';
+                    break;
+
+                case 'combos':
+                        include 'pages/admin_combos.php';
                     break;
                         
                 case 'theaters':

@@ -135,6 +135,27 @@ CREATE TABLE payments (
     FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
 );
 
+-- Bảng combo bắp nước/ đồ ăn
+CREATE TABLE combos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    image_url VARCHAR(255),
+    status ENUM('active', 'inactive') DEFAULT 'active'
+);
+
+-- Bảng combo trong đơn đặt vé
+CREATE TABLE booking_combos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT NOT NULL,
+    combo_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    price DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id),
+    FOREIGN KEY (combo_id) REFERENCES combos(id)
+);
+
 -- Thêm dữ liệu mẫu
 -- Users
 INSERT INTO users (name, email, password, role, status) VALUES 

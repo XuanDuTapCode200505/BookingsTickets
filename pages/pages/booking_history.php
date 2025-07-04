@@ -1,5 +1,5 @@
 <?php 
-require_once 'admin/config/config.php';
+   require_once __DIR__ . '/../../admin/config/config.php';
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {

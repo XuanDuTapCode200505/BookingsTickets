@@ -24,6 +24,30 @@ $seats = isset($input['seats']) ? $input['seats'] : [];
 $total_amount = isset($input['total_amount']) ? floatval($input['total_amount']) : 0;
 $user_id = $_SESSION['user_id'];
 
+// Lấy combo đã chọn từ session (nếu có)
+$combo_total = 0;
+$selected_combos = isset($_SESSION['selected_combos']) ? $_SESSION['selected_combos'] : [];
+
+if (!empty($selected_combos)) {
+    // Lấy giá combo từ database
+    $combo_ids = array_keys($selected_combos);
+    $combo_ids_str = implode(',', array_map('intval', $combo_ids));
+    $combo_sql = "SELECT id, price FROM combos WHERE id IN ($combo_ids_str)";
+    $combo_result = $conn->query($combo_sql);
+    $combo_prices = [];
+    while ($row = $combo_result->fetch_assoc()) {
+        $combo_prices[$row['id']] = $row['price'];
+    }
+    // Tính tổng tiền combo
+    foreach ($selected_combos as $combo_id => $qty) {
+        if (isset($combo_prices[$combo_id])) {
+            $combo_total += $combo_prices[$combo_id] * $qty;
+        }
+    }
+    // Cộng vào tổng tiền
+    $total_amount += $combo_total;
+}
+
 if (empty($seats) || $showtime_id <= 0 || $total_amount <= 0) {
     echo json_encode(['success' => false, 'message' => 'Thông tin đặt vé không đầy đủ']);
     exit();
@@ -62,6 +86,21 @@ try {
     }
     
     $booking_id = $conn->insert_id;
+
+    // Lưu combo vào bảng booking_combos (nếu có)
+    if (!empty($selected_combos)) {
+        foreach ($selected_combos as $combo_id => $qty) {
+            if (isset($combo_prices[$combo_id]) && $qty > 0) {
+                $price = $combo_prices[$combo_id];
+                $insert_combo_sql = "INSERT INTO booking_combos (booking_id, combo_id, quantity, price) VALUES (?, ?, ?, ?)";
+                $insert_combo_stmt = $conn->prepare($insert_combo_sql);
+                $insert_combo_stmt->bind_param("iiid", $booking_id, $combo_id, $qty, $price);
+                $insert_combo_stmt->execute();
+            }
+        }
+        // Xóa combo khỏi session sau khi đặt vé thành công
+        unset($_SESSION['selected_combos']);
+    }
     
     // Lấy screen_id từ showtime
     $screen_sql = "SELECT screen_id FROM showtimes WHERE id = ?";

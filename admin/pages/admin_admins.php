@@ -227,6 +227,18 @@ if ($action == 'add' || $action == 'edit') {
             exit;
         }
     }
+}
+
+// Nếu là sửa, lấy dữ liệu combo
+$combo = null;
+if ($action == 'edit' && $admin_id > 0) {
+    $sql = "SELECT * FROM combos WHERE id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $combo = $result->fetch_assoc();
+}
 ?>
 
 <div class="content-header">
@@ -236,7 +248,11 @@ if ($action == 'add' || $action == 'edit') {
 
 <div class="card">
     <div class="card-body">
-        <form method="POST">
+        <h2><?php echo $action == 'edit' ? 'Chỉnh sửa combo' : 'Thêm combo mới'; ?></h2>
+        <?php if ($message): ?>
+            <div class="alert <?php echo $message_type; ?>"><?php echo $message; ?></div>
+        <?php endif; ?>
+        <form method="post">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <div class="form-group">
                     <label class="form-label">Họ tên *</label>

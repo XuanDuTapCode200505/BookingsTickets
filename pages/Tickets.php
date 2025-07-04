@@ -315,3 +315,6 @@ if ($theater_name && !$showtime_id && !$movie_id) {
      data-showtime-id="<?php echo $showtime_id; ?>" 
      data-ticket-price="<?php echo isset($showtime['price']) ? $showtime['price'] : 0; ?>" 
      style="display: none;"></div>
+
+<script src="js/jquery-3.7.1.js"></script>
+<script src="js/tickets.js"></script>
