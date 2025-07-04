@@ -88,16 +88,22 @@
 
 ```
 BookingsTickets/
-├── admin/              # Trang quản trị
-├── css/               # File CSS
-├── js/                # File JavaScript
-├── img/               # Hình ảnh
-├── pages/             # Các trang website
-│   ├── actions/       # File xử lý form
-│   ├── layout/        # Layout components
-│   └── pages/         # Các trang chính
-├── database/          # File SQL
-└── index.php          # Trang chủ
+├── admin/                # Trang quản trị (admin dashboard)
+│   ├── config/           # Cấu hình kết nối CSDL cho admin
+│   ├── css/              # CSS riêng cho admin
+│   ├── js/               # JavaScript cho admin
+│   └── pages/            # Các trang quản trị (quản lý phim, rạp, lịch chiếu, ...)
+├── css/                  # File CSS cho giao diện người dùng
+├── js/                   # File JavaScript cho giao diện người dùng
+├── img/                  # Hình ảnh (poster phim, combo, banner, ...)
+│   ├── Phim/             # Ảnh poster phim
+│   └── combos/           # Ảnh combo bắp nước
+├── pages/                # Các trang website cho người dùng
+│   ├── actions/          # File xử lý logic (đặt vé, đăng nhập, ...)
+│   ├── layout/           # Layout components (header, footer, menu)
+│   └── pages/            # Các trang chính (trang phim, đặt vé, lịch sử, ...)
+├── database/             # File SQL khởi tạo và dữ liệu mẫu
+└── index.php             # Trang chủ
 ```
 
 ## 🔧 Xử Lý Lỗi
