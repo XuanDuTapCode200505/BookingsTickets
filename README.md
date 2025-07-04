@@ -54,7 +54,7 @@
 - ✅ Xem danh sách phim đang chiếu
 - ✅ Xem thông tin chi tiết phim
 - ✅ Xem danh sách rạp và lịch chiếu
-- ✅ Đặt vé online với chọn ghế
+- ✅ Đặt vé online với chọn ghế, chọn combo bắp nước
 - ✅ Xem lịch sử đặt vé
 - ✅ Hủy vé đã đặt
 - ✅ Thanh toán online
@@ -65,6 +65,7 @@
 - ✅ Quản lý phim (thêm/sửa/xóa)
 - ✅ Quản lý rạp chiếu
 - ✅ Quản lý lịch chiếu
+- ✅ Quản lý combo bắp nước
 - ✅ Quản lý đặt vé
 - ✅ Xem thống kê doanh thu
 - ✅ Quản lý người dùng
@@ -81,8 +82,9 @@
 
 1. Chọn phim → Hiển thị lịch chiếu
 2. Chọn suất chiếu → Chuyển đến trang đặt vé
-3. Chọn ghế → Xem tóm tắt đặt vé
-4. Thanh toán → Hoàn tất đặt vé
+3. Chọn ghế → chuyển trang đặt combo
+4. Chọn combo (nếu muốn) -> Chuyển đến trang thanh toán
+5. Thanh toán → Hoàn tất đặt vé
 
 ## 🛠️ Cấu Trúc Thư Mục
 
