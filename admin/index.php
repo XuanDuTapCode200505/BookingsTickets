@@ -129,10 +129,6 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                 case 'movies':
                         include 'pages/admin_movies.php';
                     break;
-
-                case 'combos':
-                        include 'pages/admin_combos.php';
-                    break;
                         
                 case 'theaters':
                         include 'pages/admin_theaters.php';
@@ -148,6 +144,10 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                         
                 case 'users':
                         include 'pages/admin_users.php';
+                    break;
+                        
+                case 'combos':
+                        include 'pages/admin_combos.php';
                     break;
                         
                     case 'admins':
@@ -202,7 +202,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                         echo '</div>';
                     echo '</div>';
                         
-                        // Đếm người dùng (role phải là 'user', không phải 'customer')
+                        // Đếm người dùng 
                         $users_result = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'user'");
                         $users_count = $users_result ? $users_result->fetch_assoc()['count'] : 0;
                     
@@ -312,10 +312,10 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                         isInternalNavigation = true;
                         console.log('🔗 Admin internal navigation:', target.href);
                         
-                        // Reset flag sau 500ms
+                        // Reset flag sau 3000ms để đảm bảo không conflict với admin operations
                         setTimeout(() => {
                             isInternalNavigation = false;
-                        }, 500);
+                        }, 3000);
                     }
                 }
             });
@@ -326,7 +326,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
                 console.log('📝 Admin form submit detected');
                 setTimeout(() => {
                     isInternalNavigation = false;
-                }, 500);
+                }, 3000);
             });
             
             // Function để logout

@@ -16,6 +16,10 @@
             include 'pages/Tickets.php';
         }elseif($tam == 'lich-su-dat-ve'){
             include 'pages/pages/booking_history.php';
+        }elseif($tam == 'thanh-toan' || $tam == 'checkout'){
+            include 'pages/pages/checkout.php';
+        }elseif($tam == 'chon-combo'){
+            include 'pages/pages/select_combo.php';
         }elseif($tam == 'admin'){
             include 'admin/index.php';
         }else{

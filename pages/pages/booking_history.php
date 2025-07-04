@@ -3,13 +3,13 @@
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
-    echo '<script>alert("Vui lòng đăng nhập để xem lịch sử đặt vé!"); window.location.href = "index.php?quanly=dangnhap";</script>';
+    echo '<script>alert("Vui lòng đăng nhập để xem lịch sử đặt vé!"); window.location.href = "../../index.php?quanly=dangnhap";</script>';
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 
-// Lấy lịch sử đặt vé
+// Lấy lịch sử đặt vé với thông tin combo
 $sql = "SELECT b.*, m.title as movie_title, m.poster_url, 
                t.name as theater_name, s.screen_name,
                st.show_date, st.show_time,
@@ -29,6 +29,18 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
+
+// Function để lấy combo data cho một booking
+function getBookingCombos($conn, $booking_id) {
+    $combo_sql = "SELECT bc.quantity, bc.price as combo_price, c.name, c.description, c.image_url
+                  FROM booking_combos bc
+                  INNER JOIN combos c ON bc.combo_id = c.id
+                  WHERE bc.booking_id = ?";
+    $combo_stmt = $conn->prepare($combo_sql);
+    $combo_stmt->bind_param("i", $booking_id);
+    $combo_stmt->execute();
+    return $combo_stmt->get_result();
+}
 ?>
 
 <div class="main-content">
@@ -68,6 +80,27 @@ $result = $stmt->get_result();
                                     <p><strong>Ngày chiếu:</strong> <?php echo date('d/m/Y', strtotime($booking['show_date'])); ?></p>
                                     <p><strong>Giờ chiếu:</strong> <?php echo date('H:i', strtotime($booking['show_time'])); ?></p>
                                     <p><strong>Ghế:</strong> <?php echo htmlspecialchars($booking['seats']); ?></p>
+                                    
+                                    <?php 
+                                    // Lấy thông tin combo
+                                    $combo_result = getBookingCombos($conn, $booking['id']);
+                                    if ($combo_result && $combo_result->num_rows > 0): 
+                                    ?>
+                                        <div class="combo-section">
+                                            <p><strong>🍿 Combo bắp nước:</strong></p>
+                                            <div class="combo-list">
+                                                <?php while($combo = $combo_result->fetch_assoc()): ?>
+                                                    <div class="combo-item">
+                                                        <div class="combo-info">
+                                                            <span class="combo-name"><?php echo htmlspecialchars($combo['name']); ?></span>
+                                                            <span class="combo-qty">x<?php echo $combo['quantity']; ?></span>
+                                                            <span class="combo-price"><?php echo number_format($combo['combo_price'] * $combo['quantity'], 0, ',', '.'); ?> VNĐ</span>
+                                                        </div>
+                                                    </div>
+                                                <?php endwhile; ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             
@@ -292,10 +325,52 @@ function printTicket(bookingId) {
     color: white;
 }
 
-
-
 .btn-cancel:hover{
     transform: scale(1.05);
+}
+
+.combo-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+}
+
+.combo-section p {
+    margin-bottom: 8px;
+    color: #ffa500;
+}
+
+.combo-list {
+    margin-left: 15px;
+}
+
+.combo-item {
+    margin-bottom: 5px;
+}
+
+.combo-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+}
+
+.combo-name {
+    color: #fff;
+    font-weight: 500;
+    min-width: 120px;
+}
+
+.combo-qty {
+    color: #ccc;
+    font-size: 14px;
+    min-width: 30px;
+}
+
+.combo-price {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 .no-bookings {

@@ -1,11 +1,15 @@
--- Tắt foreign key checks để import được
-SET FOREIGN_KEY_CHECKS = 0;
-
 -- Tạo database
 CREATE DATABASE IF NOT EXISTS phimchill;
 USE phimchill;
 
--- Xóa các bảng cũ nếu có (theo thứ tự đúng)
+-- Tắt foreign key checks để import được
+SET FOREIGN_KEY_CHECKS = 0;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+-- Xóa các bảng cũ nếu có (theo thứ tự đúng để tránh lỗi foreign key)
+DROP TABLE IF EXISTS booking_combos;
 DROP TABLE IF EXISTS booking_seats;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS bookings;
@@ -16,6 +20,7 @@ DROP TABLE IF EXISTS theaters;
 DROP TABLE IF EXISTS cities;
 DROP TABLE IF EXISTS movies;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS combos;
 
 -- Bảng users (người dùng)
 CREATE TABLE users (
@@ -617,14 +622,25 @@ INSERT INTO showtimes (movie_id, screen_id, show_date, show_time, price, availab
 (1, 59, DATE_ADD(CURDATE(), INTERVAL 3 DAY), '20:00:00', 100000, 120),
 (1, 59, DATE_ADD(CURDATE(), INTERVAL 3 DAY), '22:30:00', 110000, 120);
 
--- Bật lại foreign key checks
+-- Data combo bắp nước CGV
+INSERT INTO combos (name, description, price, image_url, status) VALUES 
+('Combo Cặp Đôi', 'Gồm 2 ly nước ngọt size L + 1 hộp bắp rang bơ size L. Hoàn hảo cho buổi hẹn hò lãng mạn tại rạp chiếu phim.', 149000, 'img/combos/combo_capdoi.png', 'active'),
+
+('Combo Gia Đình', 'Gồm 4 ly nước ngọt size M + 2 hộp bắp rang bơ size L + 1 gói kẹo. Lựa chọn tuyệt vời cho cả gia đình cùng thưởng thức phim.', 299000, 'img/combos/combo_giadinh.jpg', 'active'),
+
+('Combo Teen', 'Gồm 1 ly nước ngọt size L + 1 hộp bắp rang phô mai size M + 1 bánh kẹo. Combo năng động dành cho giới trẻ.', 89000, 'img/combos/combo_teen.png', 'active'),
+
+('Combo Chill Nhẹ', 'Gồm 1 ly nước chanh dây + 1 hộp bắp rang caramel size S + 1 pack snack. Combo nhẹ nhàng cho những phút giây thư giãn.', 69000, 'img/combos/combo_chillnhe.jpg', 'active'),
+-- Commit transaction và bật lại foreign key checks
+COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Thông báo hoàn thành
-SELECT 'Database đã được cập nhật với rạp chiếu cho tất cả 63 tỉnh thành!' as 'Trạng thái';
+SELECT 'Database đã được cập nhật với rạp chiếu cho tất cả 63 tỉnh thành và combo bắp nước!' as 'Trạng thái';
 SELECT COUNT(*) as 'Tổng số rạp' FROM theaters;
 SELECT COUNT(*) as 'Tổng số tỉnh thành' FROM cities;
 SELECT COUNT(*) as 'Tổng số phòng chiếu' FROM screens;
 SELECT COUNT(*) as 'Tổng số lịch chiếu' FROM showtimes;
+SELECT COUNT(*) as 'Tổng số combo' FROM combos;
 
 

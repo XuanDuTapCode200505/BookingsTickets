@@ -1,9 +1,11 @@
-<link rel="stylesheet" href="../../css/style.css">
-<link rel="stylesheet" href="../../css/combo.css">
-<link rel="stylesheet" href="../../css/footer.css">
 <?php
-session_name('CGV_SESSION');
-session_start();
+// Kiểm tra session trước khi khởi tạo
+if (session_status() == PHP_SESSION_NONE) {
+    session_name('CGV_SESSION');
+    session_start();
+}
+
+// Kiểm tra localStorage data và chuyển vào session nếu cần
 if (isset($_COOKIE['pendingBooking'])) {
     $bookingData = json_decode($_COOKIE['pendingBooking'], true);
     if ($bookingData && isset($bookingData['seats'])) {
@@ -17,7 +19,6 @@ if (isset($_COOKIE['pendingBooking'])) {
 }
 // Kết nối database
 require_once __DIR__ . '/../../admin/config/config.php';
-include_once __DIR__ . '/../layout/header.php';
 
 // Lấy danh sách combo active
 $sql = "SELECT * FROM combos WHERE status = 'active' ORDER BY id DESC";
@@ -33,13 +34,13 @@ while ($row = $result->fetch_assoc()) {
 
 <div class="container combo-container">
     <h2 class="combo-title">Chọn combo bắp nước (tùy chọn)</h2>
-    <form method="post" action="../actions/process_select_combo.php">
+    <form method="post" action="pages/actions/process_select_combo.php">
         <div class="row justify-content-center">
             <?php foreach ($combos as $combo): ?>
                 <div class="col-md-6 col-sm-12 mb-4 d-flex justify-content-center">
                     <div class="combo-card">
                         <?php if ($combo['image_url']): ?>
-                            <img src="../../<?php echo htmlspecialchars($combo['image_url']); ?>" alt="Combo Image">
+                            <img src="<?php echo htmlspecialchars($combo['image_url']); ?>" alt="Combo Image">
                         <?php endif; ?>
                         <div class="card-body">
                             <h5 class="card-title"><?php echo htmlspecialchars($combo['name']); ?></h5>
@@ -70,7 +71,6 @@ while ($row = $result->fetch_assoc()) {
         input.value = val;
     }
 </script>
-<?php include_once __DIR__ . '/../layout/footer.php'; ?>
 <script>
 if (localStorage.getItem("pendingBooking")) {
     document.cookie = "pendingBooking=" + encodeURIComponent(localStorage.getItem("pendingBooking")) + ";path=/";

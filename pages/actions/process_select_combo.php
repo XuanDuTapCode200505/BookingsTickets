@@ -1,13 +1,16 @@
 <?php
-session_name('CGV_SESSION');
-session_start();
+// Kiểm tra session trước khi khởi tạo
+if (session_status() == PHP_SESSION_NONE) {
+    session_name('CGV_SESSION');
+    session_start();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Nếu khách chọn "Bỏ qua"
     if (isset($_POST['action']) && $_POST['action'] === 'skip') {
         unset($_SESSION['selected_combos']);
-        // Chuyển sang trang thanh toán
-        header('Location: ../pages/checkout.php');
+        // Chuyển sang trang thanh toán qua routing chính
+        header('Location: ../../index.php?quanly=thanh-toan');
         exit;
     }
 
@@ -23,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $_SESSION['selected_combos'] = $selected_combos;
 
-    // Chuyển sang trang thanh toán
-    header('Location: ../pages/checkout.php');
+    // Chuyển sang trang thanh toán qua routing chính
+    header('Location: ../../index.php?quanly=thanh-toan');
     exit;
 }
 ?>

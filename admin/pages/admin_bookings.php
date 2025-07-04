@@ -57,6 +57,21 @@ if ($action == 'detail' && $booking_id > 0) {
     while($seat = $seats_result->fetch_assoc()) {
         $seats[] = $seat['seat_row'] . $seat['seat_number'];
     }
+    
+    // Lấy thông tin combo bắp nước
+    $combo_sql = "SELECT bc.quantity, bc.price as combo_price, c.name, c.description, c.image_url
+                  FROM booking_combos bc
+                  INNER JOIN combos c ON bc.combo_id = c.id
+                  WHERE bc.booking_id = ?";
+    $combo_stmt = $conn->prepare($combo_sql);
+    $combo_stmt->bind_param("i", $booking_id);
+    $combo_stmt->execute();
+    $combo_result = $combo_stmt->get_result();
+    
+    $combos = [];
+    while($combo = $combo_result->fetch_assoc()) {
+        $combos[] = $combo;
+    }
 ?>
 
 <div class="content-header">
@@ -115,6 +130,27 @@ if ($action == 'detail' && $booking_id > 0) {
                     <p><strong>📅 Ngày chiếu:</strong> <?php echo date('d/m/Y', strtotime($booking['show_date'])); ?></p>
                     <p><strong>🕐 Giờ chiếu:</strong> <?php echo date('H:i', strtotime($booking['show_time'])); ?></p>
                     <p><strong>💺 Ghế:</strong> <span style="background: #f8f9fa; padding: 4px 8px; border-radius: 12px;"><?php echo implode(', ', $seats); ?></span></p>
+                    
+                    <?php if (!empty($combos)): ?>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                            <p><strong>🍿 Combo bắp nước:</strong></p>
+                            <div style="margin-left: 20px;">
+                                <?php foreach($combos as $combo): ?>
+                                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                                        <span style="color: #333; font-weight: 500; min-width: 150px;">
+                                            <?php echo htmlspecialchars($combo['name']); ?>
+                                        </span>
+                                        <span style="color: #666; font-size: 14px; min-width: 40px;">
+                                            x<?php echo $combo['quantity']; ?>
+                                        </span>
+                                        <span style="color: #e50914; font-weight: bold; font-size: 14px;">
+                                            <?php echo number_format($combo['combo_price'] * $combo['quantity'], 0, ',', '.'); ?> VNĐ
+                                        </span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

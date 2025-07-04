@@ -205,9 +205,19 @@ window.viewTheaterShowtimes = function (theaterName) {
   // Đóng modal
   closeTheaterModal();
 
+  // Kiểm tra đường dẫn hiện tại để redirect đúng
+  const currentPath = window.location.pathname;
+  let basePath = "";
+
+  if (currentPath.includes("/pages/pages/")) {
+    basePath = "../../";
+  } else if (currentPath.includes("/pages/")) {
+    basePath = "../";
+  }
+
   // Chuyển đến trang đặt vé với thông tin rạp
   const theaterParam = encodeURIComponent(theaterName);
-  window.location.href = `index.php?quanly=ve&theater=${theaterParam}`;
+  window.location.href = `${basePath}index.php?quanly=ve&theater=${theaterParam}`;
 };
 
 // Helper function để hiển thị lỗi

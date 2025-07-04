@@ -8,9 +8,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="stylesheet" type="text/css" href="css/login-form.css">
     <link rel="stylesheet" type="text/css" href="css/homepages.css">
-    <link rel="stylesheet" type="text/css" href="css/register-form.css">
     <link rel="stylesheet" type="text/css" href="css/footer.css">
     <?php 
     // Load CSS riêng cho từng trang
@@ -25,11 +23,18 @@ session_start();
             case 'rap':
                 echo '<link rel="stylesheet" type="text/css" href="css/theater.css">';
                 break;
+            case 'thanh-toan':
+            case 'checkout':
+                echo '<link rel="stylesheet" type="text/css" href="css/checkout.css">';
+                break;
+            case 'chon-combo':
+                echo '<link rel="stylesheet" type="text/css" href="css/combo.css">';
+                break;
             case 'dangky':
-                // CSS đã có sẵn trong register-form.css
+                echo '<link rel="stylesheet" type="text/css" href="css/register-form.css">';
                 break;
             case 'dangnhap':
-                // CSS đã có sẵn trong login-form.css
+                echo '<link rel="stylesheet" type="text/css" href="css/login-form.css">';
                 break;
         }
     }

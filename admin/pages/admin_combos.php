@@ -23,6 +23,27 @@ if ($_SERVER['REQUEST_METHOD'] =='POST') {
         if ($stmt->execute()) {
             $message = "Thêm combo thành công!";
             $message_type = 'success';
+            // Thêm JavaScript để ẩn form sau khi thêm thành công
+            echo '<script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    showSuccessNotification("🎉 Thêm combo thành công!", function() {
+                        const editForm = document.querySelector(".card.shadow-sm");
+                        if (editForm) {
+                            editForm.style.transition = "all 0.5s ease-out";
+                            editForm.style.transform = "translateY(-20px)";
+                            editForm.style.opacity = "0";
+                            
+                            setTimeout(function() {
+                                editForm.style.display = "none";
+                                document.querySelector(".card.shadow-sm:last-child").scrollIntoView({ 
+                                    behavior: "smooth", 
+                                    block: "start" 
+                                });
+                            }, 500);
+                        }
+                    });
+                });
+            </script>';
         } else {
             $message = "Thêm combo thất bại!" .$conn->error;
             $message_type = 'error';
@@ -34,6 +55,30 @@ if ($_SERVER['REQUEST_METHOD'] =='POST') {
         if ($stmt->execute()) {
             $message = "Cập nhật combo thành công!";
             $message_type = 'success';
+            // Thêm JavaScript để ẩn form sau khi cập nhật thành công
+            echo '<script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    // Hiển thị thông báo thành công đẹp mắt
+                    showSuccessNotification("🎉 Cập nhật combo thành công!", function() {
+                        // Ẩn form chỉnh sửa với hiệu ứng
+                        const editForm = document.querySelector(".card.shadow-sm");
+                        if (editForm) {
+                            editForm.style.transition = "all 0.5s ease-out";
+                            editForm.style.transform = "translateY(-20px)";
+                            editForm.style.opacity = "0";
+                            
+                            setTimeout(function() {
+                                editForm.style.display = "none";
+                                // Scroll mượt đến danh sách
+                                document.querySelector(".card.shadow-sm:last-child").scrollIntoView({ 
+                                    behavior: "smooth", 
+                                    block: "start" 
+                                });
+                            }, 500);
+                        }
+                    });
+                });
+            </script>';
         } else {
             $message = "Cập nhật combo thất bại!" .$conn->error;
             $message_type = 'error';
@@ -41,26 +86,25 @@ if ($_SERVER['REQUEST_METHOD'] =='POST') {
     }
 }
 
-if  ($action == 'delete' && $combo_id > 0) {
+if ($action == 'delete' && $combo_id > 0) {
     $sql = "DELETE FROM combos WHERE id=?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $combo_id);
     if ($stmt->execute()) {
-        $message = "Xóa combo thành công!";
-        $message_type = 'success';
+        // Kiểm tra xem có thực sự xóa được record không
+        if ($stmt->affected_rows > 0) {
+            // Sử dụng header redirect thay vì JavaScript để tránh conflict với auto logout
+            $_SESSION['delete_success'] = "🗑️ Xóa combo thành công!";
+            header("Location: ?page=combos");
+            exit();
+        } else {
+            $message = "Không tìm thấy combo để xóa!";
+            $message_type = 'error';
+        }
     } else {
-        $message = "Xóa combo thất bại!" .$conn->error;
+        $message = "Xóa combo thất bại! " . $conn->error;
         $message_type = 'error';
     }
-}
-
-if ($action == 'toggle' && $combo_id >0) {
-    $sql = "UPDATE combos SET status = IF(status = 'active', 'inactive', 'active') WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $combo_id);
-    $stmt->execute();
-    header("Location: admin_combos.php");
-    exit();
 }
 
 // Nếu là sửa, lấy dữ liệu combo
@@ -79,6 +123,21 @@ if ($action == 'edit' && $combo_id > 0) {
         <i class="fas fa-cocktail"></i> Quản lý Combo
     </h3>
     <p class="mb-4 text-muted">Quản lý danh sách combo bắp nước/đồ ăn trong hệ thống</p>
+
+    <?php 
+    // Hiển thị thông báo xóa thành công từ session
+    if (isset($_SESSION['delete_success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <?= $_SESSION['delete_success']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                showSuccessNotification("<?= $_SESSION['delete_success']; ?>");
+            });
+        </script>
+        <?php unset($_SESSION['delete_success']); ?>
+    <?php endif; ?>
 
     <?php if ($action == 'add' || $action == 'edit'): ?>
     <div class="card shadow-sm mb-4" style="max-width: 600px;">
@@ -119,7 +178,7 @@ if ($action == 'edit' && $combo_id > 0) {
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary"><?= $action == 'edit' ? 'Cập nhật' : 'Thêm mới'; ?></button>
-                <a href="admin_combos.php" class="btn btn-secondary">Hủy</a>
+                <a href="?page=combos" class="btn btn-secondary">Hủy</a>
             </form>
         </div>
     </div>
@@ -167,13 +226,10 @@ if ($action == 'edit' && $combo_id > 0) {
                         <td class="text-danger fw-bold"><?= number_format($row['price']); ?> VNĐ</td>
                         <td>
                             <?php if ($row['status'] == 'active'): ?>
-                                <span class="badge bg-success">Hiện</span>
+                                <span class="badge bg-success">Hiện 👁️</span>
                             <?php else: ?>
-                                <span class="badge bg-secondary">Ẩn</span>
+                                <span class="badge bg-secondary">Ẩn 🚫</span>
                             <?php endif; ?>
-                            <a href="?page=combos&action=toggle&id=<?= $row['id']; ?>" class="ms-2" title="Đổi trạng thái">
-                                <i class="fas fa-sync-alt"></i>
-                            </a>
                         </td>
                         <td>
                             <a href="?page=combos&action=edit&id=<?= $row['id']; ?>" class="btn btn-warning btn-sm" title="Sửa">
@@ -191,3 +247,104 @@ if ($action == 'edit' && $combo_id > 0) {
         </div>
     </div>
 </div>
+
+<script>
+function showSuccessNotification(message, callback) {
+    // Tạo thông báo overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    // Tạo thông báo box
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 40px 60px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        transform: scale(0.5);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        max-width: 400px;
+        font-family: Arial, sans-serif;
+    `;
+    
+    notification.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+        <h3 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">${message}</h3>
+        <p style="margin: 0; font-size: 16px; opacity: 0.9;">Thao tác đã được thực hiện thành công!</p>
+    `;
+    
+    overlay.appendChild(notification);
+    document.body.appendChild(overlay);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'scale(1)';
+        notification.style.opacity = '1';
+    }, 10);
+    
+    // Auto close after 2 seconds
+    setTimeout(() => {
+        notification.style.transform = 'scale(0.8)';
+        notification.style.opacity = '0';
+        overlay.style.opacity = '0';
+        
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            if (callback) callback();
+        }, 300);
+    }, 2000);
+    
+    // Click to close
+    overlay.addEventListener('click', function() {
+        notification.style.transform = 'scale(0.8)';
+        notification.style.opacity = '0';
+        overlay.style.opacity = '0';
+        
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            if (callback) callback();
+        }, 300);
+    });
+}
+</script>
+
+<style>
+/* Thêm CSS cho hiệu ứng mượt mà */
+.card.shadow-sm {
+    transition: all 0.3s ease-out;
+}
+
+.card.shadow-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Animation cho alert */
+.alert {
+    animation: slideInDown 0.5s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
