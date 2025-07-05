@@ -624,13 +624,13 @@ INSERT INTO showtimes (movie_id, screen_id, show_date, show_time, price, availab
 
 -- Data combo bắp nước CGV
 INSERT INTO combos (name, description, price, image_url, status) VALUES 
-('Combo Cặp Đôi', 'Gồm 2 ly nước ngọt size L + 1 hộp bắp rang bơ size L. Hoàn hảo cho buổi hẹn hò lãng mạn tại rạp chiếu phim.', 149000, 'img/combos/combo_capdoi.png', 'active'),
+("Combo Cặp Đôi", "Gồm 2 ly nước ngọt size L + 1 hộp bắp rang bơ size L. Hoàn hảo cho buổi hẹn hò lãng mạn tại rạp chiếu phim.", 149000, "img/combos/combo_capdoi.png", "active"),
 
-('Combo Gia Đình', 'Gồm 4 ly nước ngọt size M + 2 hộp bắp rang bơ size L + 1 gói kẹo. Lựa chọn tuyệt vời cho cả gia đình cùng thưởng thức phim.', 299000, 'img/combos/combo_giadinh.jpg', 'active'),
+("Combo Gia Đình", "Gồm 4 ly nước ngọt size M + 2 hộp bắp rang bơ size L + 1 gói kẹo. Lựa chọn tuyệt vời cho cả gia đình cùng thưởng thức phim.", 299000, "img/combos/combo_giadinh.jpg", "active"),
 
-('Combo Teen', 'Gồm 1 ly nước ngọt size L + 1 hộp bắp rang phô mai size M + 1 bánh kẹo. Combo năng động dành cho giới trẻ.', 89000, 'img/combos/combo_teen.png', 'active'),
+("Combo Teen", "Gồm 1 ly nước ngọt size L + 1 hộp bắp rang phô mai size M + 1 bánh kẹo. Combo năng động dành cho giới trẻ.", 89000, "img/combos/combo_teen.png", "active"),
 
-('Combo Chill Nhẹ', 'Gồm 1 ly nước chanh dây + 1 hộp bắp rang caramel size S + 1 pack snack. Combo nhẹ nhàng cho những phút giây thư giãn.', 69000, 'img/combos/combo_chillnhe.jpg', 'active'),
+("Combo Chill Nhẹ", "Gồm 1 ly nước chanh dây + 1 hộp bắp rang caramel size S + 1 pack snack. Combo nhẹ nhàng cho những phút giây thư giãn.", 69000, "img/combos/combo_chillnhe.jpg", "active");
 -- Commit transaction và bật lại foreign key checks
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
